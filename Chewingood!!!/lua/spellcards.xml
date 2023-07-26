@@ -1,0 +1,52 @@
+<ActorFrame InitCommand="%function(self)
+	function nitg_send_spellcards(cards)
+		if table.getn(cards) == 0 or tonumber(GAMESTATE:GetVersionDate()) < 20170714 then return false end
+		
+		local s = GAMESTATE:GetCurrentSong()
+		s:SetNumSpellCards(table.getn(cards))
+		for i=1,table.getn(cards) do
+			local a = cards[i]
+			s:SetSpellCardTiming(i-1,a[1],a[2])
+			s:SetSpellCardName(i-1,a[3])
+			s:SetSpellCardDifficulty(i-1,a[4])
+			s:SetSpellCardColor(i-1,a[5][1],a[5][2],a[5][3],a[5][4])
+		end
+		
+	end
+	
+	function nitg_send_labels(labels)
+		if table.getn(labels) == 0 or tonumber(GAMESTATE:GetVersionDate()) < 20170714 then return false end
+		
+		local s = GAMESTATE:GetCurrentSong()
+		s:ClearLabels();
+		for i=1,table.getn(labels) do
+			s:AddLabel(labels[i][1],labels[i][2])
+		end
+		
+	end
+		
+	local function rgba(r, g, b, a)
+		if type(r) == 'table' then
+			if not r[4] then r[4] = 1 end
+			return {r[1] / 255, r[2] / 255, r[3] / 255, r[4]}
+		else
+			if not a then a = 1 end
+			return r / 255, g / 255, b / 255, a
+		end
+	end
+	
+	--start,end,name,difficulty,color
+	prefix_spellcards = {
+		--{40,64,'name',6,{.1,.2,.8,1}},
+		{32, 64, '\'that\'s not how you spell toriena\' - fawfullx', 9, rgba({255, 255, 255})},
+		{72, 103, 'gtar sazer', 13, rgba({169, 39, 250})},
+		{104, 135.5, 'scar fazer', 14, rgba({0, 225, 192})},
+		{136, 167.75, 'powerpoint', 13, rgba({255/2, 255/2, 255/2})},
+		{168, 200, 'hooi ya', 14, rgba({255, 255, 255})},
+		{203, 267.5, 'imagine two anime girls sitting on a bed', 12, rgba({181, 228, 0})},
+		{268, 299.5, 'the part where it spins more', 14, rgba({141, 25, 194})},
+		{300, 331.5, 'venti caramel frappuccino', 11, rgba({255/2, 255/2, 255/2})},
+		{332, 364, 'turn it off', 11, rgba({248, 180, 0})},
+	}
+	nitg_send_spellcards(prefix_spellcards)
+end"/>

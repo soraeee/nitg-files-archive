@@ -1,0 +1,2592 @@
+<Mods LoadCommand = "%xero(function(self)
+	scx = SCREEN_CENTER_X
+	scy = SCREEN_CENTER_Y
+	sw = SCREEN_WIDTH
+	sh = SCREEN_HEIGHT
+	
+	if not P1 or not P2 then
+		backToSongWheel('Two Player Mode Required')
+		return
+	end
+		
+	-- spellcards
+	local tf2 = math.random(69, 420)
+	local arcaeatable = {'badtek', 'nhelv', 'last celebration', 'supernova', 'to alice liddell', 'trappola', 'the ultimacy', 'far away light', 'viyellas tears', 'sulfur', 'the message', 'purple verse', 'avant raze', 'lazy addiction', 'loschen', 'glow', 'singularity', 'scarlet cage', 'alterale', 'dazzle hop'}
+	local arcaea = math.random(1, #arcaeatable)
+	local pokemon = math.random(-20000, 20000)
+	local marioparty = math.random(1, 5)
+	
+	local function rgb(r, g, b, a)
+		return {r / 255, g / 255, b / 255, a or 1}
+	end
+	card{19.5, 35.5, 'lin ssr gacha game', 5, rgb(229, 179, 16)}
+	card{36, 67.75, 'TF2 CRATE #' .. tf2 .. ' OPENING (I GOT A BURNING TC?!!?!)', 10, rgb(62, 93, 101)}
+	card{68, 83.75, 'blackjack with your parents', 9, rgb(31, 45, 51)}
+	card{84, 95.5, 'sorae attempts to pm '.. arcaeatable[arcaea] .. ' in arcaea', 10, rgb(170, 255, 229)}
+	card{100, 131.5, 'totally a roulette wheel', 11, rgb(23, 161, 138)}
+	card{132, 163.5, 'oh no my roulette wheel', 11, rgb(94, 232, 209)}
+	card{164, 179.5, 'opening '.. pokemon ..' pokemon tgc packs while high', 7, rgb(50, 50, 50)}
+	card{180, 195.5, 'Drama Alert: Tmartn attempts to scam children', 7, rgb(159, 134, 192)}
+	card{196, 227.5, 'very scuffed slot machine', 10, rgb(107, 76, 148)}
+	card{228, 260.5, 'oh no my slot machine', 11, rgb(219, 6, 98)}
+	card{275, 291.5, 'mario party '.. marioparty .. ' rng manipulation', 5, rgb(229, 179, 16)}
+	
+	function RealFov(fov)
+        return 360 / math.pi * math.atan(math.tan(math.pi * fov / 360) * SCREEN_WIDTH / SCREEN_HEIGHT * 0.75)
+    end
+
+	-- judgment / combo proxies
+	for pn = 1, 5 do
+		setupJudgeProxy(PJ[pn], P[pn]:GetChild('Judgment'), pn)
+		setupJudgeProxy(PC[pn], P[pn]:GetChild('Combo'), pn)
+	end
+	-- player proxies
+	for pn = 1, #PP do
+		PP[pn]:SetTarget(P[pn])
+		P[pn]:hidden(1)
+		P[pn]:SetFarDist(100000)
+		P[pn]:fov(RealFov(90))
+	end
+	
+	-- extra proxies
+	for i = 1, 3 do
+		PPP[i]:SetTarget(P[2+i])
+		PPP[i]:hidden(1)
+	end
+	for i = 1, 2 do
+		PEPE[i]:SetTarget(P[i])
+		PEPE[i]:hidden(1)
+	end
+	
+	P[3]:hidden(1)
+	P[4]:hidden(1)
+	P[5]:hidden(1)
+	PC[3]:hidden(1)
+	PC[4]:hidden(1)
+	PJ[3]:hidden(1)
+	PJ[4]:hidden(1)
+	PJ[5]:hidden(1)
+	P[3]:SetAwake(true)
+	P[4]:SetAwake(true)
+	P[5]:SetAwake(true)
+	P[3]:SetInputPlayer(1)
+	P[4]:SetInputPlayer(2)
+	P[5]:SetInputPlayer(1)
+	
+	-- shit
+	local me, mb = mod_ease, mod_bounce
+	local l, e = 'len', 'end'
+	
+	function modulo(a, b)
+		return a - math.floor(a/b)*b;
+	end
+	function randomXD(t)
+		if t == 0 then return 0.5 else
+		return modulo(math.sin(t * 3229.3) * 43758.5453, 1) end
+	end
+	local function rgb(r, g, b, a)
+		return {r / 255, g / 255, b / 255, a or 1}
+	end
+	
+    local condor = {}
+    condor.const1 = math.sqrt(math.pow(SCREEN_WIDTH/2,2)+math.pow(SCREEN_HEIGHT/2,2))
+    condor.const2 = 180+math.deg(math.atan(SCREEN_HEIGHT/SCREEN_WIDTH))
+
+    condor.zoom = function(amt, actor)
+        local s = actor
+        s:x(SCREEN_WIDTH/2+(condor.const1*amt*math.cos((condor.const2)/180*math.pi)));
+        s:y(SCREEN_HEIGHT/2+(condor.const1*amt*math.sin((condor.const2)/180*math.pi)));
+        s:zoom(amt)
+    end
+    
+    condor.rotation = function(ang, actor)
+        local s = actor
+        s:x(SCREEN_WIDTH/2+(condor.const1*math.cos((ang+condor.const2)/180*math.pi)));
+        s:y(SCREEN_HEIGHT/2+(condor.const1*math.sin((ang+condor.const2)/180*math.pi)));
+        s:rotationz(ang)
+    end
+		
+	--auto counter rotation via funny math stolen from hurricane tortilla because all i know how to do is copypaste code
+	definemod{'rotx','roty','rotz',function(xDegrees, yDegrees, zDegrees, plr)
+		local function mindf_reverseRotation(angleX, angleY, angleZ)
+			local sinX = math.sin(angleX);
+			local cosX = math.cos(angleX);
+			local sinY = math.sin(angleY);
+			local cosY = math.cos(angleY);
+			local sinZ = math.sin(angleZ);
+			local cosZ = math.cos(angleZ);
+			return { math.atan2(-cosX*sinY*sinZ-sinX*cosZ,cosX*cosY),
+					math.asin(-cosX*sinY*cosZ+sinX*sinZ),
+					math.atan2(-sinX*sinY*cosZ-cosX*sinZ,cosY*cosZ) }
+		end
+		local DEG_TO_RAD = math.pi / 180
+		local angles = mindf_reverseRotation(xDegrees * DEG_TO_RAD, yDegrees * DEG_TO_RAD, zDegrees * DEG_TO_RAD)
+		local rotationx,rotationy,rotationz=
+			xDegrees,
+			yDegrees,
+			zDegrees
+		local confusionxoffset,confusionyoffset,confusionzoffset=
+			(angles[1]*100),
+			(angles[2]*100),
+			(angles[3]*100)
+
+		return rotationx,rotationy,rotationz,confusionxoffset,confusionyoffset,confusionzoffset
+	end,
+	'rotationx','rotationy','rotationz','confusionxoffset','confusionyoffset','confusionzoffset'
+	}
+	
+	-- done too late
+	definemod{'layergapx', 'layergapy', function(a, b)
+		ws_layer1a:x(scx-a)
+		ws_layer1b:x(scx+a)
+		ws_layer1a:y(scy-b)
+		ws_layer1b:y(scy+b)
+	end}
+	
+	definemod{'ppp1y', 'ppp2y', 'ppp3y', function(a, b, c)
+		PPP[1]:y(a)
+		PPP[2]:y(b)
+		PPP[3]:y(c)
+	end}
+	
+	-- FUCK
+	definemod{'ppp1rotx', 'ppp1roty', 'ppp1rotz', function(a, b, c)
+		PPP[1]:rotationx(a)
+		PPP[1]:rotationy(b)
+		PPP[1]:rotationz(c)
+	end}
+	definemod{'ppp2rotx', 'ppp2roty', 'ppp2rotz', function(a, b, c)
+		PPP[2]:rotationx(a)
+		PPP[2]:rotationy(b)
+		PPP[2]:rotationz(c)
+	end}
+	definemod{'ppp3rotx', 'ppp3roty', 'ppp3rotz', function(a, b, c)
+		PPP[3]:rotationx(a)
+		PPP[3]:rotationy(b)
+		PPP[3]:rotationz(c)
+	end}
+	
+	-- stolen from mirin template docs
+	definemod {'blacksphere', function(blacksphere)
+        local invert = 50 - 50 * math.cos(blacksphere * math.pi / 180)
+        local alternate = 25 * math.sin(blacksphere * math.pi / 180)
+        local reverse = -12.5 * math.sin(blacksphere * math.pi / 180)
+        return invert, alternate, reverse
+		end,
+		'invert', 'alternate', 'reverse',
+	}
+	
+	local ws_ballamp = 150
+	local ws_ballrot = 0
+	definemod{'ballrot', 'ballamp', 'crossrot', function(a, b, c)
+		ws_ballrot = a
+		ws_ballamp = b
+		ws_roulcross:rotationz(c+45)
+	end}
+		
+	definemod{'pixelate', function(a)
+		ws_layer2b:GetShader():uniform1f('amount', a)
+	end}
+	
+	setdefault{
+		2, 'xmod',
+		100, 'modtimer',
+		100, 'dizzyholds',
+		100, 'halgun',
+		100, 'stealthpastreceptors',
+		-100, 'zbuffer',
+		-100, 'drawsizeback',
+		100, 'zoomz',
+		100, 'spiralholds',
+		100, 'dizzyholds',
+		100, 'reversetype',
+		
+		0, 'layergapx',
+		0, 'layergapy',
+		150, 'ballamp',
+		256, 'pixelate',
+	}
+	
+	cursed_extreme = {
+		{132.000,0,1},
+		{132.125,1,1},
+		{132.250,2,1},
+		{132.500,3,1},
+		{132.750,4,1},
+		{133.000,5,1},
+		{133.500,6,1},
+		{133.625,7,1},
+		{133.750,0,1},
+		{134.250,1,1},
+		{134.500,2,1},
+		{134.625,3,1},
+		{134.750,4,1},
+		{135.000,5,1},
+		{135.500,6,1},
+		{135.625,7,1},
+		{135.750,0,1},
+		{136.000,1,1},
+		{136.125,2,1},
+		{136.250,3,1},
+		{136.500,4,1},
+		{136.750,5,1},
+		{137.000,6,1},
+		{137.500,7,1},
+		{137.625,0,1},
+		{137.750,1,1},
+		{138.250,2,1},
+		{138.500,3,1},
+		{138.625,4,1},
+		{138.750,5,1},
+		{139.000,6,1},
+		{139.500,7,1},
+		{139.625,0,1},
+		{139.750,1,1},
+		{140.000,2,1},
+		{140.125,3,1},
+		{140.250,4,1},
+		{140.500,5,1},
+		{140.750,6,1},
+		{141.000,7,1},
+		{141.500,0,1},
+		{141.625,1,1},
+		{141.750,2,1},
+		{142.250,3,1},
+		{142.500,4,1},
+		{142.625,5,1},
+		{142.750,6,1},
+		{143.000,7,1},
+		{143.500,0,1},
+		{143.625,1,1},
+		{143.750,2,1},
+		{144.000,3,1},
+		{144.125,4,1},
+		{144.250,5,1},
+		{144.500,6,1},
+		{144.750,7,1},
+		{145.000,0,1},
+		{145.500,1,1},
+		{145.625,2,1},
+		{145.750,3,1},
+		{146.000,4,1},
+		{146.250,5,1},
+		{146.500,6,1},
+		{146.625,7,1},
+		{146.750,0,1},
+		{147.000,1,1},
+		{147.250,2,1},
+		{147.500,3,1},
+		{148.000,7,1},
+		{148.125,6,1},
+		{148.250,5,1},
+		{148.500,4,1},
+		{148.750,3,1},
+		{149.000,2,1},
+		{149.500,1,1},
+		{149.625,0,1},
+		{149.750,7,1},
+		{150.000,6,1},
+		{150.250,5,1},
+		{150.500,4,1},
+		{150.625,3,1},
+		{150.750,2,1},
+		{151.000,1,1},
+		{151.500,0,1},
+		{151.625,7,1},
+		{151.750,6,1},
+		{152.000,5,1},
+		{152.125,4,1},
+		{152.250,3,1},
+		{152.500,2,1},
+		{152.750,1,1},
+		{153.000,0,1},
+		{153.500,7,1},
+		{153.625,6,1},
+		{153.750,5,1},
+		{154.000,4,1},
+		{154.250,3,1},
+		{154.500,2,1},
+		{154.625,1,1},
+		{154.750,0,1},
+		{155.000,7,1},
+		{155.500,6,1},
+		{155.625,5,1},
+		{155.750,4,1},
+	}
+	fart = {
+		{58.000,3,1},
+		{58.333,2,1},
+		{58.667,3,1},
+		{59.000,2,1},
+		{59.500,2,1},
+	}
+	weh = {
+		{12.500,1,1},
+		{13.000,0,1},
+		{13.250,1,1},
+		{13.500,0,1},
+		{13.750,1,1},
+		{14.000,0,1},
+		{14.500,1,1},
+		{14.750,0,1},
+		{15.000,1,1},
+		{15.500,0,1},
+	}
+	dicbag32 = {
+		{28.000,1,1},
+		{28.500,3,1},
+		{29.000,2,1},
+		{29.250,1,1},
+		{29.500,2,1},
+		{29.750,1,1},
+	}
+	
+	func{0, function()
+		for pn = 1, 5 do
+			P[pn]:x(scx)
+		end
+		
+		for pn = 3, 5 do
+			PP[pn]:hidden(1)
+		end
+		
+		-- afts
+		ws_layer1a:SetTexture(ws_aft1:GetTexture())
+		ws_layer1b:SetTexture(ws_aft1:GetTexture())
+		ws_layer1c:SetTexture(ws_aft1:GetTexture())
+		ws_layer1d:SetTexture(ws_aft1:GetTexture())
+		
+		ws_layer1c:hidden(1)
+		ws_layer1d:hidden(1)
+		
+		ws_layer2a:SetTexture(ws_aft2:GetTexture())
+		ws_layer2b:SetTexture(ws_aft2:GetTexture())
+		ws_layer2b:hidden(1)
+		
+		ws_layer1a:zbuffer(0)
+		ws_layer1b:zbuffer(0)
+		ws_layer2a:zbuffer(0)
+		
+		ws_topsprite:SetTexture(ws_topaft:GetTexture())
+		
+		ws_plasmapixelated:SetTexture(ws_plasmaaft:GetTexture())
+		ws_plasmapixelated:GetShader():uniform1f('amount', 64)
+		ws_plasma:hidden(1)
+		
+		ws_squareframe:rotationy(40)
+		ws_squareset:rotationx(-20)
+		ws_squareframe:zoom(0.8)
+		ws_squareframe:xyz(0, 100, -100)
+		--condor.zoom(0.5, ws_squareset)
+	
+		ws_roulettewheel:xy(scx+220, scy-200)
+		ws_diag:xy(scx-220, scy)
+		
+		ws_sexagon:hidden(1)
+	end}
+	
+	set{0,
+		50, 'reverse',
+		150, 'zoom',
+	}
+	
+	for c = 0, 3 do
+		set{0,
+			200, 'tiny'..c
+		}
+	end
+	
+	local ws_toggle = 1 -- wow i never actually used this
+	
+	-- intro intro
+	func{0, 4, outExpo, 1, 0, function(a) ws_blackoverlay:diffusealpha(a) end}
+	for c = 0, 3 do
+		me(0 + c*0.75, 0.75, 200, 0, 'tiny'..c, l, outBack.params(2))
+		me(0 + c*0.75, 1, -200, 0, 'tinyx'..c, l, outBack)
+		me(0 + c*0.75, 1, -50, 0, 'tinyy'..c, l, outBack)
+		
+		me(0 + c*0.75, 1, (randomXD(c+1)-0.5)*300, 0, 'confusionzoffset'..c, l, outBack)
+		me(0 + c*0.75, 1, (randomXD(c+2)-0.5)*300, 0, 'confusionxoffset'..c, l, outBack)
+		me(0 + c*0.75, 1, (randomXD(c+3)-0.5)*300, 0, 'confusionyoffset'..c, l, outBack)
+	end
+	
+	func{0, 292, function(b)
+		for i = 1, 4 do
+			local o = ((i-1)*math.pi/2)
+			_G['ws_roulball'..i]:x(ws_ballamp*math.sin(ws_ballrot + o))
+			_G['ws_roulball'..i]:y(ws_ballamp*math.cos(ws_ballrot + o))
+		end
+	end}
+	
+	func{0, 8, outExpo, 1.2, 1, function(a) 
+		ws_layer1a:zoom(a)
+		ws_layer1b:zoom(a)
+	end}
+	
+	me(0, 95, 0, 95, 'ballrot', l, linear)
+	me(0, 95, 0, 360, 'crossrot', l, linear)
+	
+	me(2, 2, 150, 100, 'zoom', l, inOutCirc)
+	mb(3, 1.5, 0, -170, 'tinyy', outExpo, outExpo)
+	mb(3, 1.5, 0, 50, 'tinyx', outExpo, outExpo)
+	me(3, 2, -200, 0, 'tiny', l, outCubic)
+	mb(3, 2, 0, 10, 'noteskewx', outExpo, outExpo)
+	me(3, 2, 50, 0, 'reverse', l, outExpo)
+	
+	set{4,
+		150, 'orient',
+	}
+	for i = 4, 19 do
+		mb(i-0.5, 1, 100, 107, 'zoomx', inExpo, outCirc)
+		mb(i-0.5, 1, 100, 97, 'zoomy', inExpo, outCirc)
+	end
+	
+	-- imagine c2l
+	mb(4, 0.5, 0, 100, 'drunk', outQuad, inQuad)
+	mb(4.5, 0.5, 0, -100, 'drunk', outQuad, inQuad)
+	mb(4, 1, 0, 30, 'skewx', outCirc, inCirc)
+	
+	mb(5, 0.5, 0, 90, 'tipsy', outQuad, inQuad)
+	mb(5, 0.5, 0, 50, 'tinyx', outQuad, inQuad)
+	mb(5, 0.5, 0, -100, 'tinyy', outQuad, inQuad)
+	mb(5.5, 0.5, 0, -90, 'tipsy', outQuad, inQuad)
+	mb(5.5, 0.5, 0, -100, 'tinyx', outQuad, inQuad)
+	mb(5.5, 0.5, 0, 50, 'tinyy', outQuad, inQuad)
+	
+	mb(6, 1, 0, -150, 'tinyx', outCirc, outCirc)
+	mb(6, 1, 0, 70, 'tinyy', outCirc, outCirc)
+	mb(6, 0.5, 0, -25, 'invert', outCubic, inCubic)
+	mb(6.5, 0.5, 0, 25, 'invert', outCubic, inCubic)
+	
+	me(6, 2, 0, 100, 'reverse', l, inOutExpo)
+	for c = 0, 3 do -- wew lad
+		mb(6, 2, 0, -250, 'tinyy'..c, inExpo, outExpo)
+		mb(6, 2, 0, 80, 'tinyx'..c, inExpo, outExpo)
+	end
+	
+	set{8, 400, 'drunkoffset'}
+	mb(8, 0.5, 0, -100, 'drunk', outQuad, inQuad)
+	mb(8.5, 0.5, 0, 100, 'drunk', outQuad, inQuad)
+	mb(8, 1, 0, -30, 'skewx', outCirc, inCirc)
+	
+	mb(9, 0.5, 0, 90, 'tipsy', outQuad, inQuad)
+	mb(9, 0.5, 0, 50, 'tinyx', outQuad, inQuad)
+	mb(9, 0.5, 0, -100, 'tinyy', outQuad, inQuad)
+	mb(9.5, 0.5, 0, -90, 'tipsy', outQuad, inQuad)
+	mb(9.5, 0.5, 0, -100, 'tinyx', outQuad, inQuad)
+	mb(9.5, 0.5, 0, 50, 'tinyy', outQuad, inQuad)
+	
+	mb(10, 1, 0, 50, 'skewx', outExpo, inCirc)
+	mb(10, 1, 0, 20, 'invert', outCirc, inCirc)
+	mb(10, 1, 0, -50, 'tinyx', outCirc, inQuad)
+	--mb(10, 1, 0, 100, 'drunk', outExpo, inCirc)
+	mb(11, 1, 0, 70, 'skewy', outCirc, inQuad)
+	mb(11, 1, 0, -100, 'tinyy', outCirc, inQuad)
+	mb(11, 1, 0, -20, 'invert', outCirc, inCirc)
+	--mb(11, 1, 0, -100, 'drunk', outExpo, inCirc)
+	mb(11, 1, 0, -100, 'tipsy', outExpo, inCirc)
+	
+	set{12, 0, 'orient'}
+	me(12, 4, 360*2, 0, 'roty', l, outQuad)
+	me(16, 4, -360*2, 0, 'roty', l, outQuad)
+	for i = 12, 18 do
+		mb(i, 1, 0, 100, 'invert', outCirc, outCirc)
+		mb(i, 0.5, 0, -150, 'tinyx', outCirc, inQuad)
+		mb(i, 0.5, 0, 40, 'tinyy', outCirc, inQuad)
+		mb(i+0.5, 0.5, 0, -150, 'tinyy', outCirc, inQuad)
+		mb(i+0.5, 0.5, 0, 40, 'tinyx', outCirc, inQuad)
+	end
+	
+	func{12, function()
+		PP[5]:hidden(0)
+	end}
+	
+	set{12, 70, 'zoom', -50, 'x', -10, 'rotz', plr = 5}
+	
+	for i, v in ipairs(weh) do
+		if v[2] == 1 then
+			me(v[1], 0.25, 0, 25, 'flip', l, outQuad, 5)
+			me(v[1], 0.25, 0, -75, 'invert', l, outQuad, 5)
+		else
+			me(v[1], 0.25, 25, 0, 'flip', l, outQuad, 5)
+			me(v[1], 0.25, -75, 0, 'invert', l, outQuad, 5)
+		end
+		me(v[1], 0.5, -100, 0, 'tinyx', l, outQuad, 5)
+		me(v[1], 0.5, 50, 0, 'tinyy', l, outQuad, 5)
+		me(v[1], 0.5, 40*(modulo(v[1], 2) * 2 - 1), 0, 'tipsy', l, outQuad, 5)
+	end
+	mb(12, 1, 100, 130, 'zoomy', outCirc, inCirc, 5)
+	mb(12, 1, 100, 80, 'zoomx', outCirc, inCirc, 5)
+	
+	me(15, 2, 100, 0, 'reverse', l, inOutCirc)
+	
+	set{16, 50, 'x', 10, 'rotz', 1.25, 'xmod', 100, 'drawsize', 100, 'reverse', plr = 5}
+	
+	for i = 16, 19 do
+		local m = (modulo(i, 2) * 2 - 1)
+		mb(i, 1, 95, 105, 'zoomy', outBack, inQuad, 5)
+		mb(i, 1, 110, 85, 'zoomx', outBack, inQuad, 5)
+		mb(i, 1, 0, 20*m, 'invert', outBack, inQuad, 5)
+		mb(i, 1, 0, 30*m, 'tipsy', outCirc, inCirc, 5)
+	end
+	
+	func{20, function()
+		PP[5]:hidden(1)
+	end}
+	reset{20, plr = 5}
+	
+	func{12, function()
+		ws_layer1a:cropright(0.6)
+		ws_layer1b:cropleft(0.4)
+	end}
+	mb(12, 4, 0, 120, 'layergapx', outCirc, inExpo)
+	func{16, function()
+		ws_layer1a:cropright(0.4)
+		ws_layer1b:cropleft(0.6)
+	end}
+	mb(16, 4, 0, 120, 'layergapx', outCirc, inExpo)
+	
+	-- intro
+	set{20, -50, 'orient'}
+	me(20, 1.5, -200, 0, 'tiny', l, outCubic)
+	for i = 20, 26, 2 do
+		local m = modulo(i/2, 2) * 2 - 1
+		mb(i, 2, 0, 100*m, 'tipsy', inExpo, outExpoExpo)
+		mb(i, 2, 0, -50, 'tinyy', inExpo, outExpoExpo)
+		mb(i, 2, 0, 20, 'tinyx', inExpo, outExpoExpo)
+		me(i+1, 1.5, -200, 0, 'tiny', l, outCubic)
+		
+		mb(i, 2, 0, 70*m, 'drunk', outCirc, inCirc)
+		mb(i, 2, 0, -20*m, 'roty', outCirc, inQuad)
+		mb(i, 2, 0, 50, 'wave', outCirc, inCirc)
+		
+		func{i+1, 1, outCubic, 1.05, 1, function(a) ws_roulettewheel:zoom(a) end}
+		func{i+1, 1, outCubic, 0.65, 0.6, function(a) ws_diag:zoomx(a) end}
+	end
+	me(20, 8, 0, -40, 'rotx', l, inOutSine)
+	me(28, 4, -40, 0, 'rotx', l, inOutExpo)
+	
+	for i = 32, 35, 0.75 do
+		local m = modulo(i*4, 2) * 2 - 1
+		mb(i, 0.75, 0, 20*m, 'rotationy', outCirc, inCirc)
+		mb(i-(0.75/2), 0.75, 0, 20, 'reverse', inExpo, outExpo)
+		mb(i-(0.75/2), 0.75, 0, -20, 'flip', inExpo, outExpo)
+		me(i, 1, -200, 0, 'tiny', l, outCubic)
+		me(i, 1, -40*m, 0, 'dizzy', l, outCubic)
+		
+		func{i, 1, outCubic, 1.15, 1, function(a) ws_roulettewheel:zoom(a) end}
+		func{i, 1, outCubic, 0.75, 0.6, function(a) ws_diag:zoomx(a) end}
+		func{i, 1, outCubic, -80, -100, function(a) ws_squareframe:z(a) end}
+		func{i, 1, outCubic, 5.1, 5, function(a) ws_plusbg:zoom(a) end}
+	end
+	me(35, 1, 110, 0, 'zoom', l, inExpo)
+	me(35, 1, -200, 0, 'tinyy', l, inExpo)
+	me(35, 1, 0, -20, 'rotationx', l, outCirc)
+	
+	set{28, -100, 'orient'}
+	for i, v in ipairs(dicbag32) do
+		local m = modulo(i, 2) * 2 - 1
+		me(v[1], 0.5, -150, 0, 'tiny', l, outCubic)
+		mb(v[1], 0.5, 0, 50*m, 'drunk', outQuad, inQuad)
+	end
+	
+	for i = 30, 31, 0.5 do
+		local m = modulo(i*2, 2) * 2 - 1
+		mb(i, 1, 100, 140, 'zoom', inCubic, outCubic)
+		mb(i, 1, 0, 5*m, 'rotationz', inCirc, outCirc)
+		mb(i, 1, 0, 25*m, 'invert', inCirc, outCirc)
+		me(i+0.5, 1, -200, 0, 'tiny', l, outCubic)
+	end
+	set{36, 0, 'orient'}
+	
+	func{34, 2, inOutExpo, 100, 400, function(a) ws_squareframe:y(a) end}
+	func{34, 2, inOutExpo, scx-220, scx-450, function(a) ws_diag:x(a) end}
+	func{34, 2, inOutExpo, scy-200, scy-600, function(a) ws_roulettewheel:y(a) end}
+	
+	-- bomb sniffing artificial intelligence
+	local ws_bullshit = 0
+	
+	-- 'roulette wheel' stuff
+	func{36, 8, outExpo, scx+600, scx+200, function(a) ws_roulettewheel:xy(a, scy) end}
+	func{36, 6, outExpo, scy+600, scy+180, function(a) ws_diag2:y(a) end}
+	func{36, 6, outExpo, scy-600, scy-180, function(a) ws_diag3:y(a) end}
+	
+	func{50, 2, inExpo, scx+200, scx+600, function(a) ws_roulettewheel:x(a) end}
+	func{52, 8, outExpo, scx-600, scx-200, function(a) ws_roulettewheel:x(a) end}
+	
+	func{66, 2, inExpo, scx-200, scx-600, function(a) ws_roulettewheel:x(a) end}
+	func{66, 2, inExpo, scy+180, scy+600, function(a) ws_diag2:y(a) end}
+	func{66, 2, inExpo, scy-180, scy-600, function(a) ws_diag3:y(a) end}
+	
+	func{68, 6, outExpo, scy+600, scy+200, function(a) ws_roulettewheel:xy(scx, a) end}
+	func{68, 6, outExpo, scx+450, scx+200, function(a) ws_diag:x(a) end}
+	
+	func{74, 2, inExpo, scy+200, scy+600, function(a) ws_roulettewheel:xy(scx, a) end}
+	--func{74, 2, inExpo, scx+200, scx+450, function(a) ws_diag:x(a) end}
+	
+	func{76, 6, outExpo, scy-600, scy-200, function(a) ws_roulettewheel:xy(scx, a) end}
+	--func{76, 6, outExpo, scx-450, scx-200, function(a) ws_diag:x(a) end}
+	
+	func{82, 2, inExpo, scy-200, scy-600, function(a) ws_roulettewheel:xy(scx, a) end}
+	func{82, 2, inExpo, scx+200, scx+450, function(a) ws_diag:x(a) end}
+	
+	-- haha sex a gon :flushed:
+	func{43, 2, inOutExpo, scy-50, scy+50, function(a) ws_sexagon:y(a) end}
+	func{52, function() ws_sexagon:x(scx+100) end}
+	func{59, 2, inOutExpo, scy+50, scy-50, function(a) ws_sexagon:y(a) end}
+	
+	func{68, function() ws_sexagon:xy(scx+150, scy-70) end}
+	func{71, 2, inOutExpo, scx+150, scx-150, function(a) ws_sexagon:x(a) end}
+	func{76, function() ws_sexagon:y(scy+70) end}
+	func{79, 2, inOutExpo, scx-150, scx+150, function(a) ws_sexagon:x(a) end}
+	
+	func{84, function() ws_sexagon:hidden(1) end}
+	
+	func{36, function()
+		for pn = 1, 2 do
+			PP[pn]:hidden(1)
+			PEPE[pn]:hidden(0)
+		end
+		ws_layer1a:cropright(0.65)
+		ws_layer1b:cropleft(0.35)
+		
+		ws_sexagon:hidden(0)
+		ws_sexagon:xy(scx-100, scy-50)
+	end}
+	func{36, 3, outExpo, 0.65, 0.825, function(a) ws_layer1a:cropright(a) end}
+	func{36, 3, outExpo, 0.35, 0.525, function(a) ws_layer1b:cropleft(a) end}
+	set{36, 75, 'zoom', 0, 'rotationx', -100, 'x', 100, 'drawsize'}
+	
+	for i = 36, 68, 4 do
+		local p = modulo(i/4, 2) + 1
+		hide{i, 4, plr = p, column = {0, 1, 2, 3}}
+	end
+	
+	for pn = 1, 2 do
+		local m = modulo(pn, 2) * 2 - 1
+		-- etc
+		
+		mb(48, 2, 0, 20*m, 'rotationx', outCirc, inCirc, pn)
+		mb(48, 2, 0, -30*m, 'tornado', outCirc, inCirc, pn)
+		mb(48, 2, 0, 5*m, 'dizzy', outCirc, inCirc, pn)
+		mb(50, 2, 0, -30*m, 'rotationx', outCirc, inCirc, pn)
+		mb(50, 2, 0, 30*m, 'tornado', outCirc, inCirc, pn)
+		mb(50, 2, 0, -5*m, 'dizzy', outCirc, inCirc, pn)
+		
+		mb(56, 1, 0, -35*m, 'roty', outCirc, inCirc, pn)
+		mb(56, 1, 0, 20*m, 'skewx', outCirc, inCirc, pn)
+		mb(57, 1, 0, 35*m, 'roty', outCirc, inCirc, pn)
+		mb(57, 1, 0, 20*m, 'skewy', outCirc, inCirc, pn)
+		
+		mb(64, 2, 0, 20*m, 'rotationx', outCirc, inCirc, pn)
+		mb(64, 2, 0, 70*m, 'tipsy', outCirc, inCirc, pn)
+		mb(64, 2, 0, -30*m, 'tornado', outCirc, inCirc, pn)
+		mb(64, 2, 0, 5*m, 'dizzy', outCirc, inCirc, pn)
+		mb(66, 2, 0, -20*m, 'rotationx', outCirc, inCirc, pn)
+		mb(66, 2, 0, -70*m, 'tipsy', outCirc, inCirc, pn)
+		mb(66, 2, 0, 30*m, 'tornado', outCirc, inCirc, pn)
+		mb(66, 2, 0, -5*m, 'dizzy', outCirc, inCirc, pn)
+	
+		for i = 36, 66, 2 do
+			local k = modulo(i/2, 2) * 2 - 1
+			me(i, 1, 50, 0, 'brake', l, linear, pn) -- technically not necessary but i am lazy
+			mb(i-0.5, 1, 0, 150*k*m, 'drunk', inExpo, outCirc, pn)
+		end
+		
+	end
+	func{36, 68-36, function(b, mods)
+		for pn = 1, 2 do
+			local o = ((pn-1)*math.pi)
+			mods[pn].movex = 10*math.sin(ws_bullshit+o/1.25)
+			mods[pn].movez = 30*math.cos(ws_bullshit+o/1.25)
+			mods[pn].rotationz = 20/4*math.cos(ws_bullshit+o/1.25)
+		end
+	end}
+	
+	mb(37, 2, 0, 30, 'reverse', outExpo, outExpo, 2)
+	me(37, 2, -360, 0, 'roty', l, outCirc, 2)
+	mb(37, 2, 0, -150, 'tinyx', inExpo, outExpo, 2)
+	mb(37, 2, 0, 50, 'tinyy', inExpo, outExpo, 2)
+	
+	mb(38.5, 1, 0, -170, 'tinyx', outExpo, outExpo, 1)
+	mb(38.5, 1, 0, 50, 'tinyy', outExpo, outExpo, 1)
+	mb(38.5, 1, 0, 100, 'invert', outExpo, outExpo, 1)
+	
+	mb(40, 1, 0, -200, 'tinyy', outExpo, outCirc, 2)
+	mb(40, 1, 0, 50, 'tinyx', outExpo, outCirc, 2)
+	mb(40, 1, 0, 150, 'tipsy', outExpo, outCirc, 2)
+	mb(40, 1, 0, 100, 'invert', outExpo, outExpo, 1)
+	
+	mb(42, 2, 0, -30, 'reverse', outExpo, outExpo, 1)
+	me(42, 2, 360, 0, 'roty', l, outCirc, 1)
+	mb(42, 2, 0, -150, 'tinyx', inExpo, outExpo, 1)
+	mb(42, 2, 0, 50, 'tinyy', inExpo, outExpo, 1)
+	
+	mb(43.5, 0.5, 0, 50, 'invert', outCubic, outCubic)
+	
+	me(43, 2, 0, 100, 'reverse', l, inOutExpo)
+	me(44, 1.5, -200, 0, 'tiny', l, outCubic)
+	me(44, 1.5, 20, 0, 'flip', l, outCubic)
+	
+	mb(44.5, 1, 0, -170, 'tinyx', outExpo, outExpo, 1)
+	mb(44.5, 1, 0, 50, 'tinyy', outExpo, outExpo, 1)
+	mb(44.5, 1, 0, 100, 'invert', outExpo, outExpo, 1)
+	
+	mb(45, 1, 0, 200, 'tipsy', outExpo, outCirc, 1)
+	mb(45.5, 1, 0, -200, 'tipsy', outExpo, outCirc, 2)
+	
+	me(47, 1.5, -3000, 0, 'tinyz', l, outQuad)
+	
+	me(51, 0.5, -250, 0, 'tiny', l, outCubic)
+	me(51, 0.5, 20, 0, 'flip', l, outCubic)
+	me(51.5, 0.5, -250, 0, 'tiny', l, outCubic)
+	me(51.5, 0.5, 20, 0, 'flip', l, outCubic)
+	
+	func{51, 1, inExpo, 0.825, 0.65, function(a) ws_layer1a:cropright(a) end}
+	func{51, 1, inExpo, 0.525, 0.35, function(a) ws_layer1b:cropleft(a) end}
+	
+	func{52, 3, outExpo, 0.65, 0.825, function(a) ws_layer1b:cropleft(a) end}
+	func{52, 3, outExpo, 0.35, 0.525, function(a) ws_layer1a:cropright(a) end}
+	
+	set{52, 100, 'x'}
+	
+	mb(53, 2, 100, 70, 'reverse', outExpo, outExpo, 2)
+	me(53, 2, -360, 0, 'roty', l, outCirc, 2)
+	mb(53, 2, 0, -150, 'tinyx', inExpo, outExpo, 2)
+	mb(53, 2, 0, 50, 'tinyy', inExpo, outExpo, 2)
+	
+	mb(54.5, 1, 0, 50, 'invert', outExpo, outExpo)
+	
+	mb(54.5, 1, 0, -200, 'tipsy', outExpo, outCirc, 1)
+	mb(54.5, 1, 0, -200, 'tinyx', outExpo, outCirc, 1)
+	mb(54.5, 1, 0, 50, 'tinyy', outExpo, outCirc, 1)
+	
+	mb(55, 1, 0, 200, 'tipsy', outExpo, outCirc, 2)
+	mb(55, 1, 0, -200, 'tinyy', outExpo, outCirc, 2)
+	mb(55, 1, 0, 50, 'tinyx', outExpo, outCirc, 2)
+	
+	me(59, 2, 100, 0, 'reverse', l, inOutExpo)
+	me(60, 1.5, -200, 0, 'tiny', l, outCubic)
+	me(60, 1.5, 20, 0, 'flip', l, outCubic)
+	
+	mb(61, 2, 0, -20, 'reverse', outExpo, outCirc, 1)
+	me(61, 2, 360, 0, 'roty', l, outCirc, 1)
+	mb(61, 2, 0, -150, 'tinyx', inExpo, outExpo, 1)
+	mb(61, 2, 0, 50, 'tinyy', inExpo, outExpo, 1)
+	
+	me(63, 1.5, -3000, 0, 'tinyz', l, outQuad)
+	
+	func{67, 1, inExpo, 0.825, 0.65, function(a) ws_layer1b:cropleft(a) end}
+	func{67, 1, inExpo, 0.525, 0.35, function(a) ws_layer1a:cropright(a) end}
+	set{68, 150, 'x', -100, 'y', 20, 'reverse', 5, 'rotationz'}
+	func{68, function()
+		ws_layer1a:cropright(0)
+		ws_layer1b:cropleft(0)
+		
+		ws_layer1a:croptop(0.65)
+		ws_layer1b:cropbottom(0.35)
+	end}
+	func{68, 3, outExpo, 0.65, 0.90, function(a) ws_layer1a:croptop(a) end}
+	func{68, 3, outExpo, 0.35, 0.60, function(a) ws_layer1b:cropbottom(a) end}
+	
+	for i = 0, 2 do
+		local m = modulo(i, 2) * 2 - 1
+		mb(68+i, 1, 0, 70*m, 'drunk', outCirc, inCirc)
+		mb(76+i, 1, 0, 70*m, 'drunk', outCirc, inCirc)
+	end
+	
+	mb(70.5, 1.5, 0, 100, 'tipsy', outCirc, inCirc)
+	me(71, 2, 150, -150, 'x', l, inOutExpo)
+	me(71, 2, -360, 0, 'roty', l, inOutExpo)
+	me(71, 2, 5, -5, 'rotationz', l, inOutExpo)
+
+	mb(72, 2, 0, 40, 'skewx', outCirc, inCirc)
+	mb(74, 2, 0, -50, 'skewx', outCirc, inCirc)
+	
+	set{76, 100, 'y', 80, 'reverse', -5, 'rotationz'}
+	func{75, 1, inExpo, 0.90, 0.65, function(a) ws_layer1a:croptop(a) end}
+	func{75, 1, inExpo, 0.60, 0.35, function(a) ws_layer1b:cropbottom(a) end}
+	
+	func{76, 3, outExpo, 0.65, 0.90, function(a) ws_layer1b:cropbottom(a) end}
+	func{76, 3, outExpo, 0.35, 0.60, function(a) ws_layer1a:croptop(a) end}
+	
+	mb(78.5, 1.5, 0, -100, 'tipsy', outCirc, inCirc)
+	me(79, 2, -150, 150, 'x', l, inOutExpo)
+	me(79, 2, 360, 0, 'roty', l, inOutExpo)
+	me(79, 2, -5, 5, 'rotationz', l, inOutExpo)
+	
+	mb(81, 1.5, 0, 40, 'skewy', outCirc, inCirc)
+	mb(82.5, 1.5, 0, -50, 'skewy', outCirc, inCirc)
+	
+	func{83, 1, inExpo, 0.90, 0.65, function(a) ws_layer1b:cropbottom(a) end}
+	func{83, 1, inExpo, 0.60, 0.35, function(a) ws_layer1a:croptop(a) end}
+	func{68, function()
+		ws_layer1a:cropright(0)
+		ws_layer1b:cropleft(0)
+		
+		ws_layer1a:croptop(0.65)
+		ws_layer1b:cropbottom(0.35)
+	end}
+	
+	set{84, 0, 'rotationz', 0, 'x', 0, 'y', 0, 'reverse', 25, 'flip', -25, 'invert'}
+	for i = 84, 88, 4 do -- scuffed code
+		func{i, function()
+			ws_layer1a:cropright(0.5)
+			ws_layer1b:cropleft(0.5)
+			
+			ws_layer1a:croptop(0)
+			ws_layer1b:cropbottom(0)
+		end}
+		func{i+2, function()
+			ws_layer1a:cropright(0)
+			ws_layer1b:cropleft(0)
+			
+			ws_layer1a:croptop(0.5)
+			ws_layer1b:cropbottom(0.5)
+		end}
+		
+		mb(i, 2, 0, 120, 'layergapx', outExpo, inExpo)
+		mb(i+2, 1.95, 0, 150, 'layergapy', outExpo, inExpo)
+	end
+	
+	
+	for i = 68, 83 do
+		mb(i-0.5, 1, 100, 115, 'zoomx', inExpo, outCirc)
+		mb(i-0.5, 1, 100, 90, 'zoomy', inExpo, outCirc)
+	end
+
+	for i, v in ipairs(fart) do
+		local m = modulo(i, 2) * 2 - 1
+		me(v[1], 0.5, -200, 0, 'tiny', l, outCubic)
+		me(v[1], 0.5, -100*m, 0, 'tipsy', l, outCubic)
+	end
+	
+	for i = 36, 67 do
+		local shit = ws_bullshit
+		func{i-0.5, 1, inOutCirc, shit, shit + 1, function(a) ws_bullshit = a end}
+		ws_bullshit = shit + 1
+		
+		mb(i-0.5, 1, 100, 110, 'zoomx', inExpo, outCirc)
+		mb(i-0.5, 1, 100, 95, 'zoomy', inExpo, outCirc)
+	end
+	
+	for i = 84, 90, 2 do
+		local m = modulo(i/2, 2)
+		me(i, 1, -200, 0, 'tiny', l, outCirc)
+		me(i+0.5, 1, -200, 0, 'tiny', l, outCirc)
+		
+		me(i, 1, -200*(modulo(i/2, 2) * 2 - 1), 0, 'tipsy', l, outCirc)
+		me(i+0.5, 1, 200*(modulo(i/2, 2) * 2 - 1), 0, 'tipsy', l, outCirc)
+		me(i, 1, -150*(modulo(i/2, 2) * 2 - 1), 0, 'drunk', l, outCirc)
+		me(i+0.5, 1, 150*(modulo(i/2, 2) * 2 - 1), 0, 'drunk', l, outCirc)
+		
+		me(i, 1, -5000, 0, 'tinyz1', l, outCirc)
+		
+		me(i, 1, -50, 0, 'tinyy1', l, outCirc)
+		me(i, 1, -100, 0, 'tinyx1', l, outCirc)
+		me(i+0.5, 1, -50, 0, 'tinyy1', l, outCirc)
+		me(i+0.5, 1, -100, 0, 'tinyx1', l, outCirc)
+		
+		me(i+0.5, 1, 100, 75, 'zoom', l, outCirc)
+		me(i+0.5, 1, 100, 75, 'zoom', l, outCirc)
+		
+		me(i + 1, 1, 628*1.5, 0, 'confusionzoffset', l, linear)
+		
+		if m == 0 then
+			func{i, 1, outCubic, 1, 0, function(a) ws_glowtop:diffusealpha(a) end}
+			func{i+0.5, 1, outCubic, 1, 0, function(a) ws_glowbottom:diffusealpha(a) end}
+		else
+			func{i, 1, outCubic, 1, 0, function(a) ws_glowleft:diffusealpha(a) end}
+			func{i+0.5, 1, outCubic, 1, 0, function(a) ws_glowright:diffusealpha(a) end}
+		end
+	end
+	
+	me(84, 2, 0, 20, 'rotationx', l, outCirc)
+	me(84, 2, 0, 20, 'rotationy', l, outCirc)
+	
+	me(86, 2, 0, 20, 'rotationx', l, outCirc)
+	me(86, 2, 0, -20, 'rotationy', l, outCirc)
+	
+	me(88, 2, 0, -20, 'rotationx', l, outCirc)
+	me(88, 2, 0, 20, 'rotationy', l, outCirc)
+	
+	me(90, 2, 0, -20, 'rotationx', l, outCirc)
+	me(90, 2, 0, -20, 'rotationy', l, outCirc)
+	
+	me(92, 2, 0, 100, 'zoom', l, outExpo)
+	func{92, function()
+		for i = 1, 2 do
+			PEPE[i]:hidden(1)
+			PP[i]:hidden(0)
+		end
+		ws_layer1a:cropright(0.5)
+		ws_layer1b:cropleft(0.5)
+		
+		ws_layer1a:croptop(0)
+		ws_layer1b:cropbottom(0)
+	end}
+	for i = 92, 95, 0.75 do
+		local m = modulo(i*4, 2) * 2 - 1
+		mb(i, 0.75, 0, 20*m, 'rotationy', outCirc, inCirc)
+		mb(i, 0.75, 0, 20, 'rotationx', outCirc, inCirc)
+		mb(i-(0.75/2), 0.75, 0, 20, 'reverse', inExpo, outExpo)
+		--mb(i-(0.75/2), 0.75, 0, -20, 'flip', inExpo, outExpo)
+		me(i, 1, -200, 0, 'tiny', l, outCubic)
+		me(i, 1, -500, 0, 'tinyz', l, outCubic)
+		me(i, 1, -40*m, 0, 'dizzy', l, outCubic)
+	end
+	
+	-- the roulette wheel of fukc
+	func{96, 4, outCirc, 0, 1, function(a)
+		-- i dont want to write a definemod fuck you
+		local newR1, newG1, newB1 = 23/255, 161/255, 138/255
+		local newR2, newG2, newB2 = 94/255, 232/255, 209/255
+		local oldR1, oldG1, oldB1 = 229/255, 179/255, 16/255
+		local oldR2, oldG2, oldB2 = 247/255, 222/255, 141/255
+		
+		local b = math.abs(a - 1)
+		
+		ws_grad1top:diffuse(newR1*a + oldR1*b, newG1*a + oldG1*b, newB1*a + oldB1*b, 1)
+		ws_grad1bottom:diffuse(newR2*a + oldR2*b, newG2*a + oldG2*b, newB2*a + oldB2*b, 1)
+	end}
+	func{96, function() ws_roulettewheel:zoom(1.5) end}
+	func{96, 4, outExpo, scy+600, scy+300, function(a) ws_roulettewheel:xy(scx, a) end}
+	me(96, 4, 0, 8*2, 'ballrot', l, outExpo)
+	me(96, 4, 0, 200*2, 'crossrot', l, outExpo)
+	
+	me(100, 16, 16, -32, 'ballrot', l, inOutCubic)
+	me(100, 16, 400, -400, 'crossrot', l, inOutCubic)
+	
+	me(116, 16, -16, 32, 'ballrot', l, inOutCubic)
+	me(116, 16, -400, 400, 'crossrot', l, inOutCubic)
+	
+	func{128, 4, inOutExpo, scy+300, scy-300, function(a) ws_roulettewheel:y(a) end}
+	me(132, 160-132, 16, -96, 'ballrot', l, inQuad)
+	me(132, 160-132, 400, -1000, 'crossrot', l, inQuad)
+	func{156, 4, inOutExpo, scy-300, scy-600, function(a) ws_roulettewheel:y(a) end}
+	
+	func{96, 4, outExpo, scy-400, scy-200, function(a) ws_diag2:y(a) end}
+	func{96, 4, outExpo, scy-400, scy-140, function(a) ws_dash1:y(a) end}
+	
+	func{128, 2, inExpo, scy-200, scy-400, function(a) ws_diag2:y(a) end}
+	func{128, 2, inExpo, scy-140, scy-400, function(a) ws_dash1:y(a) end}
+	func{130, function()
+		ws_diag2:texcoordvelocity(0.3, -0.3)
+		ws_dash1:texcoordvelocity(0.5, 0)
+	end}
+	func{130, 2, outExpo, scy+400, scy+200, function(a) ws_diag2:y(a) end}
+	func{130, 2, outExpo, scy+400, scy+140, function(a) ws_dash1:y(a) end}
+	
+	func{156, 4, inOutExpo, scy+200, scy+400, function(a) ws_diag2:y(a) end}
+	func{156, 4, inOutExpo, scy+140, scy+400, function(a) ws_dash1:y(a) end}
+	
+	plr = {1, 2, 3, 4}
+	me(95, 2, 25, 50, 'flip', l, inOutExpo)
+	me(95, 2, -25, 0, 'invert', l, inOutExpo)
+	me(95, 2, 0, 50, 'reverse', l, inOutExpo)
+	
+	func{96, function()
+		for pn = 3, 4 do
+			PP[pn]:hidden(0)
+		end
+		
+		ws_layer1a:cropright(0.5)
+		ws_layer1b:cropleft(0.5)
+		ws_layer2b:hidden(0)
+		
+		ws_hollowsquarebg:texcoordvelocity(0.8, 0)
+		ws_squarebg:texcoordvelocity(0.8, 0)
+	end}
+	
+	local ws_roulamp = 0
+	local ws_roulamp2 = 0
+	local ws_roulrot = 0.6
+	
+	func{97, 1, outCirc, 0, 250, function(a) ws_roulamp = a end}
+	func{98, 1, outCirc, 250, 500, function(a) ws_roulamp = a end}
+	me(97, 1, 0, 150, 'movey', l, outCirc)
+	me(98, 1, 150, 300, 'movey', l, outCirc)
+	mb(97, 2.5, 0, -60, 'rotx', outCirc, outQuad)
+	mb(97, 2, 100, 400, 'zoomz', outExpo, outExpo)
+	
+	mb(96, 1, 0, -150, 'tinyy', outCirc, inCirc)
+	mb(96.5, 1, 0, -300, 'tinyx', inCirc, outCirc)
+	mb(97.5, 1, 0, -300, 'tinyx', inCirc, outCirc)
+	
+	mb(99, 1.25, 0, -120, 'tinyy', outCirc, inCirc)
+	mb(99, 1.25, 0, -50, 'tinyx', outCirc, inCirc)
+	mb(99, 1, 100, 120, 'zoomy', outCirc, inOutCirc)
+	mb(99, 1.25, 0, -3000, 'tinyz', outExpoExpo, inOutExpo)
+	--mb(99, 1.25, 100, 200, 'zoomz', outExpo, inOutExpo)
+	me(99, 1.5, -100, 0, 'tiny', l, outQuad)
+	
+	func{96, 4, inOutExpo, -3, 0.6, function(a) ws_roulrot = a end}
+	func{100, 4, outCirc, 0, 12, function(a) ws_roulamp2 = a end}
+	
+	--set{96, 100, 'sudden', 260, 'suddenoffset', plr = {1, 2, 3, 4}}
+	func{96, 160-96, function(b, mods)
+		for pn = 1, 4 do
+			for c = 0, 3 do
+				local m = -1
+				if b >= 129 then m = 1 end
+				local o = m*((pn-1)*4+c)
+				P[pn]:SetXSpline(1, c, 0, 600, -1)
+				P[pn]:SetYSpline(1, c, 0, 600, -1)
+				
+				P[pn]:SetXSpline(0, c, ws_roulamp*math.sin(ws_roulrot + o/2.55), 0, -1)
+				P[pn]:SetYSpline(0, c, ws_roulamp*math.cos(ws_roulrot + o/2.55), 0, -1)
+				
+				if b >= 100 then
+					mods[pn].rotx = ws_roulamp2*math.sin(b/2)
+					mods[pn].roty = ws_roulamp2*math.cos(b/2)
+				end
+				
+				P[pn]:SetStealthSpline(2, c, 100, 550, -1)
+				P[pn]:SetStealthSpline(1, c, 0, 480, -1)
+				P[pn]:SetStealthSpline(0, c, 0, 0, -1)
+			end
+		end
+	end}
+	
+	for i = 100, 110, 2 do
+		local shit = ws_roulrot
+		func{i, 2, inOutExpo, shit, shit + 1.57/2, function(a) ws_roulrot = a end}
+		ws_roulrot = shit + 1.57/2
+		
+		func{i+0.75, 0.25, inExpo, 500, 550, function(a) ws_roulamp = a end}
+		func{i+1, 1.75, outCubic, 550, 500, function(a) ws_roulamp = a end}
+		me(i+1, 1, -200, 0, 'tinyx', l, outCirc)
+		me(i+1, 1.5, -1500, 0, 'tinyz', l, outCirc)
+		me(i+1, 1.5, 110, 100, 'zoomx', l, outCirc)
+		me(i+1, 1, 50, 0, 'tinyy', l, outCirc)
+		me(i+1, 1.5, 95, 100, 'zoomy', l, outCirc)
+		
+		func{i+1, 1, outCubic, 1.55, 1.5, function(a) ws_roulettewheel:zoom(a) end}
+	end
+	
+	func{112, function()
+		PP[5]:hidden(0)
+	end}
+	set{112, -150, 'z', plr = 5} -- help
+	
+	func{112, 2, outExpo, scx, scx-130, function(a) ws_layer1a:x(a) end}
+	func{112, 2, outExpo, scx, scx+130, function(a) ws_layer1b:x(a) end}
+	
+	func{115, 2, inOutExpo, scx-130, scx, function(a) ws_layer1a:x(a) end}
+	func{115, 2, inOutExpo, scx+130, scx, function(a) ws_layer1b:x(a) end}
+	
+	func{112, 4, outBack.params(0.5), 4.525*4, 0.6, function(a) ws_roulrot = a end}
+	
+	for i = 112, 116 do
+		if modulo(i, 2) == 0 then
+			mb(i, 1, 100, 110, 'zoomy', outExpoExpo, inExpoExpo, 5)
+			mb(i, 1, 100, 90, 'zoomx', outExpoExpo, inExpoExpo, 5)
+			mb(i+0.5, 1, 0, 20, 'drunk', outExpoExpo, inExpoExpo, 5)
+			mb(i+0.5, 1, 0, -50, 'digital', outExpoExpo, inExpoExpo, 5)
+		else
+			mb(i, 1, 100, 110, 'zoomx', outExpoExpo, inExpoExpo, 5)
+			mb(i, 1, 100, 90, 'zoomy', outExpoExpo, inExpoExpo, 5)
+			mb(i+0.5, 1, 0, -20, 'drunk', outExpoExpo, inExpoExpo, 5)
+			mb(i+0.5, 1, 0, 50, 'digital', outExpoExpo, inExpoExpo, 5)
+		end
+		
+		for j = 0, 7 do
+			set{i+j/8, 78.5*j, 'confusionzoffset', plr = 5}
+		end
+	end
+	set{112,
+		7, 'rotationz',
+		-10, 'rotationy',
+		-15, 'rotationx',
+		1.5, 'xmod',
+		350, 'zoomz',
+		-100, 'tinyz',
+	plr = 5}
+	
+	for i = 116, 126, 2 do
+		local shit = ws_roulrot
+		func{i, 2, inOutExpo, shit, shit - 1.57/2, function(a) ws_roulrot = a end}
+		ws_roulrot = shit - 1.57/2
+		
+		func{i+0.75, 0.25, inExpo, 500, 550, function(a) ws_roulamp = a end}
+		func{i+1, 1.75, outCubic, 550, 500, function(a) ws_roulamp = a end}
+		me(i+1, 1, -200, 0, 'tinyx', l, outCirc)
+		me(i+1, 1.5, -1500, 0, 'tinyz', l, outCirc)
+		me(i+1, 1.5, 110, 100, 'zoomx', l, outCirc)
+		me(i+1, 1, 50, 0, 'tinyy', l, outCirc)
+		me(i+1, 1.5, 95, 100, 'zoomy', l, outCirc)
+		
+		func{i+1, 1, outCubic, 1.55, 1.5, function(a) ws_roulettewheel:zoom(a) end}
+	end
+	
+	func{128, 2, outExpo, scx, scx-130, function(a) ws_layer1a:x(a) end}
+	func{128, 2, outExpo, scx, scx+130, function(a) ws_layer1b:x(a) end}
+	
+	func{131, 2, inOutExpo, scx-130, scx, function(a) ws_layer1a:x(a) end}
+	func{131, 2, inOutExpo, scx+130, scx, function(a) ws_layer1b:x(a) end}
+	
+	func{128, 4, outBack.params(0.5), -4.525*4, 0.6, function(a) ws_roulrot = a end}
+	
+	for i = 128, 132 do
+		if modulo(i, 2) == 0 then
+			mb(i, 1, 100, 110, 'zoomy', outExpoExpo, inExpoExpo, 5)
+			mb(i, 1, 100, 90, 'zoomx', outExpoExpo, inExpoExpo, 5)
+			mb(i+0.5, 1, 0, -20, 'drunk', outExpoExpo, inExpoExpo, 5)
+			mb(i+0.5, 1, 0, 50, 'digital', outExpoExpo, inExpoExpo, 5)
+		else
+			mb(i, 1, 100, 110, 'zoomx', outExpoExpo, inExpoExpo, 5)
+			mb(i, 1, 100, 90, 'zoomy', outExpoExpo, inExpoExpo, 5)
+			mb(i+0.5, 1, 0, 20, 'drunk', outExpoExpo, inExpoExpo, 5)
+			mb(i+0.5, 1, 0, -50, 'digital', outExpoExpo, inExpoExpo, 5)
+		end
+		
+		for j = 0, 7 do
+			set{i+j/8, 78.5*j, 'confusionzoffset', plr = 5}
+		end
+	end
+	set{128,
+		-7, 'rotationz',
+		10, 'rotationy',
+		-15, 'rotationx',
+	plr = 5}
+	
+	func{133, function()
+		PP[5]:hidden(1)
+	end}
+	
+	me(128, 4, 300, -300, 'movey', l, inOutCirc)
+	func{128, 4, inOutCubic, 500, -500, function(a) ws_roulamp = a end}
+	
+	for pn = 1, 8 do
+		for c = 0, 3 do
+			local m = modulo(c, 2)
+			P[pn]:SetNumPathGradientPoints(c, 1)
+			P[pn]:SetPathGradientPoint(0, c, 0)
+			P[pn]:SetPathGradientColor(0, c, m, 0, 0, 1)
+		end
+	end
+	set{132,
+		1000, 'arrowpathsize',
+		-98, 'arrowpathdrawsizeback',
+	}
+	for i, v in ipairs(cursed_extreme) do
+		if v[2] > 3 then -- too lazy to figure out something clever
+			me(v[1], 1, 100, 0, 'arrowpath'..v[2] - 4, l, outCubic, 2)
+			me(v[1], 1, 100, 0, 'arrowpath'..v[2] - 4, l, outCubic, 4)
+			me(v[1], 0.75, -150, 0, 'tiny'..v[2] - 4, l, outCubic, 2)
+			me(v[1], 0.75, -150, 0, 'tinyx'..v[2] - 4, l, outCubic, 2)
+			me(v[1], 0.5, -20, 0, 'confusionzoffset'..v[2] - 4, l, outCubic, 2)
+			me(v[1], 0.5, -200, 0, 'tinyz'..v[2] - 4, l, outCubic, 4)
+			me(v[1], 0.5, -150, 0, 'tinyx'..v[2] - 4, l, outCubic, 4)
+			me(v[1], 0.5, -50, 0, 'confusionzoffset'..v[2] - 4, l, outCubic, 4)
+		else
+			me(v[1], 1, 100, 0, 'arrowpath'..v[2], l, outCubic, 1)
+			me(v[1], 1, 100, 0, 'arrowpath'..v[2], l, outCubic, 3)
+			me(v[1], 0.75, -150, 0, 'tiny'..v[2], l, outCubic, 1)
+			me(v[1], 0.75, -150, 0, 'tinyx'..v[2], l, outCubic, 1)
+			me(v[1], 0.5, 20, 0, 'confusionzoffset'..v[2], l, outCubic, 1)
+			me(v[1], 0.5, -200, 0, 'tinyz'..v[2], l, outCubic, 3)
+			me(v[1], 0.5, -150, 0, 'tinyx'..v[2], l, outCubic, 3)
+			me(v[1], 0.5, 50, 0, 'confusionzoffset'..v[2], l, outCubic, 3)
+		end
+	end
+	
+	func{132, 4, outCirc, 12, 18, function(a) ws_roulamp2 = a end}
+	for i = 132, 154, 2 do
+		local shit = ws_roulrot
+		func{i, 2, inOutExpo, shit, shit + 1.57, function(a) ws_roulrot = a end}
+		ws_roulrot = shit + 1.57
+		
+		func{i+0.75, 0.25, inExpo, 500, 600, function(a) ws_roulamp = a end}
+		func{i+1, 1.75, outCubic, 600, 500, function(a) ws_roulamp = a end}
+		--me(i+1, 1, -200, 0, 'tinyx', l, outCirc)
+		--me(i+1, 1.5, -500, 0, 'tinyz', l, outCirc)
+		me(i+1, 1.5, 30, 0, 'brake', l, outCirc)
+		me(i+1, 1.5, 120, 100, 'zoomx', l, outCirc)
+		me(i+1, 1, 50, 0, 'tinyy', l, outCirc)
+		me(i+1, 1.5, 90, 100, 'zoomy', l, outCirc)
+		
+		func{i+1, 1, outCubic, 1.6, 1.5, function(a) ws_roulettewheel:zoom(a) end}
+	end
+	
+	func{156, 4, inCirc, ((154-132)*1.57)+0.6, 0, function(a) ws_roulrot = a end}
+	func{156, 4, inExpo, 500, 0, function(a) ws_roulamp = a end}
+	func{156, 4, inCirc, 18, 80, function(a) ws_roulamp2 = a end}
+	me(156, 4, 100, 0, 'zoom', l, inExpo)
+	me(156, 4, -300, 0, 'movey', l, inExpo)
+	
+	func{160, function()
+		PP[3]:hidden(1)
+		PP[4]:hidden(1)
+		ws_layer2b:hidden(1)
+	end}
+	
+	plr = {1, 2}
+	set{160, 
+		100, 'splinexreset',
+		100, 'splineyreset',
+		100, 'splinestealthreset',
+		0, 'movey',
+	plr = {1, 2, 3, 4, 5}}
+	me(160, 2, 50, 0, 'reverse', l, outExpo)
+	me(160, 2, 50, 0, 'flip', l, outExpo)
+	me(160, 2, 0, 100, 'zoom', l, outExpo)
+	
+	-- take a break
+	mb(160, 1, 0, 100, 'tipsy', outExpo, inExpo)
+	mb(161, 1, 0, -100, 'tipsy', outExpo, inExpo)
+	mb(162, 1, 0, 100, 'tipsy', outExpo, inExpo)
+	
+	func{162, 2, inOutExpo, 0, 1, function(a) ws_cover:diffusealpha(a) end}
+	me(162, 2, 0, -500, 'x', l, inOutCirc, 1)
+	me(162, 2, 0, 500, 'x', l, inOutCirc, 2)
+	set{164, 100, 'reverse', 125, 'x', plr = 2}
+	set{164, -125, 'x', plr = 1}
+	set{164, 100, 'stealth', 100, 'dark', 100, 'hidenoteflashes', 90, 'zoom', 1.25, 'xmod'}
+	
+	me(163, 1, -250, 0, 'tinyx', l, outCirc)
+	me(163, 1, 50, 0, 'tinyy', l, outCirc)
+	
+	set{163.9, 100, 'hidenoteflashes'}
+	
+	for i = 164, 174, 2 do
+		local p = modulo(i/2, 2) + 1
+		me(i, 1.5, 0, 100, 'stealth', l, outQuad, p)
+		me(i, 1.5, 70, 100, 'dark', l, outQuad, p)
+		me(i, 1.5, -100, 0, 'tinyx', l, outQuad, p)
+		me(i, 1.5, -20, 0, 'tinyy', l, outQuad, p)
+		me(i, 2, 50, 0, 'brake', l, outCirc, p)
+		me(i, 2, 0, 150, 'centered2', l, linear, p)
+		
+		set{i, 50*(randomXD(i)-0.5), 'rotationy', 50*(randomXD(i*2)-0.5), 'rotationx', plr = p}
+	end
+	
+	set{176, 0, 'hidenoteflashes'}
+	set{176, 
+		400, 'y',
+		0, 'x',
+		0, 'stealth',
+		0, 'dark',
+		0, 'centered2',
+		0, 'rotationx',
+		0, 'rotationy',
+		0, 'reverse',
+		1.5, 'xmod',
+		100, 'zoom'
+	}
+	me(176, 3, 400, 0, 'y', l, outExpo)
+	me(176, 2, 120, 100, 'zoomy', l, outCirc)
+	me(176, 2, 80, 100, 'zoomx', l, outCirc)
+	func{178, 2, inOutExpo, 1, 0, function(a) ws_cover:diffusealpha(a) end}
+	func{178, function()
+		ws_grad1bottom:diffuse(159/255, 134/255, 192/255, 1)
+		ws_grad1top:diffuse(107/255, 76/255, 148/255, 1)
+		
+		ws_diag2:texcoordvelocity(-0.3, 0.3)
+		ws_squarebg:texcoordvelocity(0, -0.8)
+		ws_hollowsquarebg:texcoordvelocity(0, -0.8)
+		ws_diag2:y(scy-180)
+		ws_diag3:y(scy+180)
+	end}
+	
+	-- Copied from
+	for i = 177, 178 do
+		mb(i, 0.5, 0, -25, 'skewy', outBack, inCubic)
+		mb(i, 0.5, 0, 15, 'noteskewy', outBack, inCubic)
+		mb(i+0.5, 0.5, 0, 25, 'skewy', outBack, inCubic)
+		mb(i+0.5, 0.5, 0, -15, 'noteskewy', outBack, inCubic)
+		
+		mb(i, 1, 100, 120, 'zoomy', outBack, outBack)
+		mb(i, 1, 0, -120, 'tinyy', outBack, outBack)
+		mb(i, 1, 0, 20, 'tinyx', outBack, outBack)
+		
+		mb(i, 0.5, 0, 20, 'drunk', outBack, inCirc)
+		mb(i+0.5, 0.5, 0, -20, 'drunk', outBack, inCirc)
+	end
+	me(179, 1, 100, 0, 'zoomy', l, outExpo)
+	me(179, 1, 100, 150, 'zoomx', l, outExpo)
+	
+	me(180, 2, 120, 100, 'zoomy', l, outExpo)
+	me(180, 2, 0, 100, 'zoomx', l, outExpo)
+	
+	set{180, 150, 'x', plr = 1}
+	set{180, -150, 'x', plr = 2}
+	set{180, 50, 'wave', 50, 'orient'}
+	
+	for i = 180, 187 do
+		local m = modulo(i, 2) * 2 - 1
+		mb(i, 1, 0, 70*m, 'tipsy', outCirc, inCirc)
+		mb(i, 1, 0, -25+50*-m, 'tinyy', outCirc, inCirc)
+		mb(i, 1, 0, -25+50*m, 'tinyx', outCirc, inCirc)
+	end
+	
+	for i = 180, 186, 2 do
+		local m = modulo(i/2, 2) * 2 - 1
+		mb(i, 2, 0, -15*m, 'skewy', outCirc, outCirc)
+		mb(i, 2, 0, 10*m, 'noteskewy', outCirc, outCirc)
+		mb(i, 2, 0, 15*m, 'skewx', outCirc, outCirc)
+		mb(i, 2, 0, -10*m, 'noteskewx', outCirc, outCirc)
+		mb(i, 2, 0, -200*m, 'attenuate', outCirc, outCirc)
+		
+		me(i+1, 1, -30*m, 0, 'invert', l, outCubic)
+		me(i+1, 1, 40, 0, 'brake', l, outCubic)
+	end
+	
+	for i = 186, 187.5, 0.75 do
+		local j = math.abs((186*4/3) - (i*4/3))
+		local k = math.abs((186*4/3) - ((i+0.75)*4/3))
+		me(i, 1, -200, 0, 'tiny', l, outCubic)
+		me(i, 1, j*(-60/3), k*(-60/3), 'rotx', l, outCubic)
+	end
+	me(186, 1.75, -150, 0, 'x', l, inOutCirc, 1)
+	me(186, 1.75, 150, 0, 'x', l, inOutCirc, 2)
+	
+	me(188, 4, -360*4, 0, 'roty', l, inCirc)
+	me(188, 4, 100, 300, 'zoomz', l, inCirc)
+	me(192, 4, -360*4, 0, 'roty', l, outCirc)
+	me(192, 4, 300, 100, 'zoomz', l, outCirc)
+	me(192, 4, -60, 0, 'rotx', l, outCirc)
+	me(192, 4, 50, 0, 'wave', l, outCirc)
+	me(192, 4, 50, 0, 'orient', l, outCirc)
+	
+	me(188, 1, -300, 0, 'tiny', l, outCubic)
+	me(190, 1, -300, 0, 'tiny', l, outCubic)
+	
+	-- child gambling
+	func{194, function()
+		for i = 1, 4 do
+			_G['ws_dashborder'..i]:hidden(0)
+		end
+	end}
+	func{194, 4, outExpo, scx, scx-110, function(a)
+		ws_dashborder1:x(a)
+		ws_dashborder3:x(a+5)
+	end}
+	func{194, 4, outExpo, scx, scx+110, function(a)
+		ws_dashborder2:x(a)
+		ws_dashborder4:x(a-5)
+	end}
+	
+	for i = 196, 256, 4 do -- EFFICIENT CODE
+		func{i, 1.5, outCubic, 0.7, 0, function(a) ws_glowbottom:diffusealpha(a) end}
+		func{i+1, 1.5, outCubic, 0.7, 0, function(a) ws_glowtop:diffusealpha(a) end}
+		func{i+2, 1.5, outCubic, 0.7, 0, function(a) ws_glowleft:diffusealpha(a) end}
+		func{i+3, 1.5, outCubic, 0.7, 0, function(a) ws_glowright:diffusealpha(a) end}
+	end
+	
+	reset{191, plr = {3, 4, 5}}
+	set{191,
+		100, 'sudden',
+		130, 'suddenoffset',
+		2.0, 'xmod',
+	plr = {3, 4, 5}}
+	func{191, function()
+		ws_layer1c:hidden(0)
+		ws_layer1d:hidden(0)
+		
+		ws_layer1a:cropright(0.75)
+		
+		ws_layer1b:cropleft(0.25)
+		ws_layer1b:cropright(0.5)
+		
+		ws_layer1c:cropleft(0.5)
+		ws_layer1c:cropright(0.25)
+		
+		ws_layer1d:cropleft(0.75)
+		
+		for i = 1, 3 do
+			--local cock = 320*(i - 2)
+			PPP[i]:hidden(0)
+			PPP[i]:xy(0, 800)
+			PPP[i]:z(-185)
+		end
+	end}
+	
+	set{191, -500, 'movex', plr = 3}
+	set{191, 500, 'movex', plr = 5}
+	
+	-- cant definemod this LOL
+	func{191.9, 1.1, outCirc, 0, 0.1, function(a)
+		ws_layer1a:cropright(0.75+a*2)
+		ws_layer1b:cropleft(0.25+a/2)
+	end}
+	func{192.9, 1.1, outCirc, 0, 0.1, function(a)
+		ws_layer1c:cropright(0.25+a/2)
+		ws_layer1d:cropleft(0.75+a*2)
+	end}
+	func{193.9, 1.1, outCirc, 0, 0.1, function(a)
+		ws_layer1b:cropright(0.5+a*1.3) -- lol 'math???'??????
+		ws_layer1c:cropleft(0.5+a*1.3)
+	end}
+	
+	plr = {1, 2}
+	me(193, 2, 0, 50, 'flip', l, inOutCirc)
+	
+	me(192, 2, 600, -30, 'ppp1y', l, outExpo)
+	me(193, 2, 600, -30, 'ppp3y', l, outExpo)
+	me(194, 2, 600, -30, 'ppp2y', l, outExpo)
+	
+	me(195, 1.5, -30, -700, 'ppp1y', l, inOutCirc)
+	me(195, 1.5, -30, -700, 'ppp3y', l, inOutCirc)
+	me(196, 3, -30, -700, 'ppp2y', l, inOutCirc)
+	
+	-- lol
+	for pn = 1, 8 do
+		for c = 0, 3 do
+			P[pn]:SetNumArrowGradientPoints(c, 1)
+			P[pn]:SetArrowGradientPoint(0, c, 0)
+			P[pn]:SetArrowGradientColor(0, c, 1, 1, 1, 1)	
+		end
+	end
+	definemod{'betterstealth', function(a, pn)
+		for c = 0, 3 do
+			P[pn]:SetArrowGradientColor(0, c, 1, 1, 1, 1-a/100)
+		end
+	end}
+	
+	local cheater = {-1, -1, 1, 1} -- i can't do math
+	
+	for i = 196, 260, 2 do
+		local j = modulo((i/2)-2, 3) + 1
+		local k = modulo(i/2, 2) * 2 - 1
+		local w = modulo(i/2, 4) + 1
+		local m = 1
+		if i >= 226 then m = 0.25 end
+		
+		if i >= 228 and k == -1 then
+			set{i, 100, 'reverse', 0, 'boost', plr = j+2}
+			me(i, 2, -400, 20, 'ppp' .. j .. 'y', l, outCirc)
+			me(i+2, 2.5, 20, 700, 'ppp' .. j .. 'y', l, inOutCirc)
+			me(i, 2, -10*m, 0, 'ppp' .. j .. 'rotx', l, outCirc)
+			me(i+2, 2.5, 0, 30*m, 'ppp' .. j .. 'rotx', l, inOutCirc)
+		else
+			set{i, 0, 'reverse', plr = j+2}
+			me(i, 2, 400, -20, 'ppp' .. j .. 'y', l, outCirc)
+			me(i+2, 2.5, -20, -700, 'ppp' .. j .. 'y', l, inOutCirc)
+			me(i, 2, 30*m, 0, 'ppp' .. j .. 'rotx', l, outCirc)
+			me(i+2, 2.5, 0, -10*m, 'ppp' .. j .. 'rotx', l, inOutCirc)
+		end
+		set{i, 0, 'hidenoteflashes', 100, 'sudden', plr = j+2}
+		me(i, 2, 100, 0, 'betterstealth', l, outExpo, j+2)
+		me(i, 2, 100, 50, 'dark', l, outCubic, j+2)
+		me(i+2, 1.8, 0, 100, 'betterstealth', l, inOutQuad, j+2)
+		me(i+2, 1.8, 50, 100, 'dark', l, inOutQuad, j+2)
+		set{i+3.8, 100, 'hidenoteflashes', 0, 'sudden', plr = j+2}
+		
+		if i >= 226 then
+			me(i, 2, -50*cheater[w], 0, 'rotz', l, outCirc, j+2)
+			me(i+2, 2.5, 0, 30*cheater[w], 'rotz', l, inOutCirc, j+2)
+		end
+		
+		for pn = 3, 5 do
+			mb(i-0.5, 1, 0, 200*k, 'tipsy', inExpo, outExpo, pn)
+		end
+	end
+	
+	plr = {3, 4, 5}
+	for i = 196, 260 do
+		local m = modulo(i, 2) * 2 - 1
+		mb(i-0.5, 1, 0, -200, 'tinyx', inExpo, outExpo)
+		mb(i-0.5, 1, 100, 105, 'zoomx', inExpo, outExpo)
+		mb(i-0.5, 1, 0, 40, 'tinyy', inExpo, outExpo)
+		mb(i-0.5, 1, 100, 98, 'zoomy', inExpo, outExpo)
+		
+		mb(i, 1, 0, 15*m, 'invert', outCirc, inCirc)
+		
+		if i < 226 then
+			func{i-0.25, 0.25, inCirc, 1, 1.035, function(a) ws_topsprite:zoom(a) end}
+			func{i, 0.75, outCirc, 1.035, 1, function(a) ws_topsprite:zoom(a) end}
+			func{i, 1, outCirc, 0.8*m, 0, function(a) ws_topsprite:rotationz(a) end}
+		end
+		if i >= 228 then
+			func{i-0.25, 0.25, inCirc, 0.85, 0.88, function(a) ws_topsprite:zoomx(a) end}
+			func{i, 0.75, outCirc, 0.88, 0.85, function(a) ws_topsprite:zoomx(a) end}	
+			func{i-0.25, 0.25, inCirc, 0.85, 0.835, function(a) ws_topsprite:zoomy(a) end}
+			func{i, 0.75, outCirc, 0.835, 0.85, function(a) ws_topsprite:zoomy(a) end}		
+			
+			func{i-0.25, 0.25, inCirc, 0.9, 0.95, function(a) ws_border:zoomx(a) end}
+			func{i, 0.75, outCirc, 0.95, 0.9, function(a) ws_border:zoomx(a) end}	
+			func{i-0.25, 0.25, inCirc, 0.9, 0.87, function(a) ws_border:zoomy(a) end}
+			func{i, 0.75, outCirc, 0.87, 0.9, function(a) ws_border:zoomy(a) end}		
+		end
+		func{i-0.25, 0.25, inCirc, 1, 1.025, function(a) ws_layer1a:zoom(a) ws_layer1b:zoom(a) ws_layer1c:zoom(a) ws_layer1d:zoom(a) end}
+		func{i, 0.75, outCirc, 1.025, 1, function(a) ws_layer1a:zoom(a) ws_layer1b:zoom(a) ws_layer1c:zoom(a) ws_layer1d:zoom(a) end}
+		
+		if i >= 228 then
+			me(i, 1, 40, 0, 'brake', l, outCubic)
+		end
+	end
+	
+	mb(195, 1, 100, 90, 'zoomx', outCirc, inCirc)
+	mb(195, 1, 100, 120, 'zoomy', outCirc, inCirc)
+	mb(195, 1, 0, -5, 'skewy', outCirc, inCirc)
+	
+	mb(211, 1.5, 0, -3000, 'tinyz', outExpo, inOutCirc, 4)
+	mb(211, 1, 0, 10, 'skewy', outCirc, inCirc)
+	
+	mb(226, 1, 0, 20, 'flip', outExpo, outExpo)
+	me(226, 1, -250, 0, 'tiny', l, outCubic)
+	me(226.5, 1, -250, 0, 'tiny', l, outCubic)
+	
+	mb(220, 2, 0, -20, 'skewx', outExpo, inCirc)
+	mb(222, 2, 0, 20, 'skewx', outExpo, inCirc)
+	mb(224, 2, 0, 40, 'skewy', outExpo, inCirc)
+	
+	mb(241.25, 1.5, 0, -3000, 'tinyz', inCirc, outQuad)
+	mb(242.25, 1.5, 0, -3000, 'tinyz', inCirc, outQuad)
+	
+	-- wow zoom
+	func{226, 2, inOutCirc, 0, 20, function(a) ws_roulamp2 = a end}
+	func{226, 2, inOutCirc, 1, 0.85, function(a) ws_topsprite:zoom(a) end}
+	func{226, 2, inOutCirc, 1, 0.9, function(a) ws_border:zoom(a) end}
+	func{226, 260-226, function(b)
+		ws_topsprite:rotationx(ws_roulamp2*math.sin(b/3))
+		ws_topsprite:rotationy(ws_roulamp2*math.cos(b/3))
+		ws_borderframe:rotationx(-ws_roulamp2*math.sin(b/3))
+		ws_borderframe:rotationy(ws_roulamp2*math.cos(b/3))
+	end}
+	func{226, function() ws_plasma:hidden(0) end}
+	
+	func{258.5, 1.5, inOutQuad, 20, 0, function(a) ws_roulamp2 = a end}
+	func{258.5, 2.5, inOutExpo, 0.85, 1, function(a) ws_topsprite:zoom(a) end}
+	func{258.5, 2.5, inOutCirc, 0.9, 1, function(a) ws_border:zoom(a) end}
+	
+	func{261, function() ws_topsprite:zoom(1) end}
+	
+	func{257.9, 1.1, outCirc, 0.1, 0, function(a)
+		ws_layer1a:cropright(0.75+a*2)
+		ws_layer1b:cropleft(0.25+a/2)
+	end}
+	func{258.9, 1.1, outCirc, 0.1, 0, function(a)
+		ws_layer1c:cropright(0.25+a/2)
+		ws_layer1d:cropleft(0.75+a*2)
+	end}
+	func{259.9, 1.1, outCirc, 0.1, 0, function(a)
+		ws_layer1b:cropright(0.5+a*1.3)
+		ws_layer1c:cropleft(0.5+a*1.3)
+	end}
+	
+	plr = {1, 2}
+	me(259, 2, 50, 0, 'flip', l, inOutCirc)
+	
+	func{256, 4, inOutExpo, scx-110, scx, function(a)
+		ws_dashborder1:x(a)
+		ws_dashborder3:x(a+5)
+	end}
+	func{256, 4, inOutExpo, scx+110, scx, function(a)
+		ws_dashborder2:x(a)
+		ws_dashborder4:x(a-5)
+	end}
+	
+	func{256, 4, inOutExpo, scy-180, scy-400, function(a) ws_diag2:y(a) end} 
+	func{256, 4, inOutExpo, scy+180, scy+400, function(a) ws_diag3:y(a) end} 
+	func{260, function()
+		for i = 1, 4 do
+			_G['ws_dashborder'..i]:hidden(1)
+		end
+		ws_squarebg:texcoordvelocity(-0.5, 0)
+		ws_hollowsquarebg:texcoordvelocity(-0.5, 0)
+	end}
+	
+	-- intro outro
+	func{260, function()ws_roulettewheel:zoom(1) end}
+	func{261, function()
+		ws_layer1c:hidden(1)
+		ws_layer1d:hidden(1)
+		ws_layer1a:cropright(0.6)
+		ws_layer1a:cropleft(0)
+		ws_layer1b:cropleft(0.4)
+		ws_layer1b:cropright(0)
+		
+		PPP[3]:hidden(1)
+		
+		ws_plasma:hidden(1)
+	end}
+	func{260, 4, outCirc, 0, 1, function(a)
+		-- i dont want to write a definemod fuck you (copied from)
+		local oldR1, oldG1, oldB1 = 107/255, 76/255, 148/255
+		local oldR2, oldG2, oldB2 = 159/255, 134/255, 192/255
+		local newR1, newG1, newB1 = 229/255, 179/255, 16/255
+		local newR2, newG2, newB2 = 247/255, 222/255, 141/255
+		
+		local b = math.abs(a - 1)
+		
+		ws_grad1top:diffuse(newR1*a + oldR1*b, newG1*a + oldG1*b, newB1*a + oldB1*b, 1)
+		ws_grad1bottom:diffuse(newR2*a + oldR2*b, newG2*a + oldG2*b, newB2*a + oldB2*b, 1)
+	end}
+	func{260, 2, outExpo, -400, 0, function(a) ws_squareframe:y(a) end}
+	func{260, 2, outExpo, scx+450, scx+220, function(a) ws_diag:x(a) end}
+	func{260, 2, outExpo, scy+600, scy+200, function(a) ws_roulettewheel:xy(scx-220, a) end}
+	
+	me(260, 40, 0, -40, 'ballrot', l, linear)
+	me(260, 40, 0, -180, 'crossrot', l, linear)
+	
+	me(260, 2, 0, 100, 'reverse', l, outExpo)
+	set{260,
+		150, 'orient',
+	}
+	for i = 260, 279 do
+		mb(i-0.5, 1, 100, 107, 'zoomx', inExpo, outCirc)
+		mb(i-0.5, 1, 100, 97, 'zoomy', inExpo, outCirc)
+	end
+	
+	mb(260, 0.5, 0, 100, 'drunk', outQuad, inQuad)
+	mb(260.5, 0.5, 0, -100, 'drunk', outQuad, inQuad)
+	mb(260, 1, 0, 30, 'skewx', outCirc, inCirc)
+	
+	mb(261, 0.5, 0, 90, 'tipsy', outQuad, inQuad)
+	mb(261, 0.5, 0, 50, 'tinyx', outQuad, inQuad)
+	mb(261, 0.5, 0, -100, 'tinyy', outQuad, inQuad)
+	mb(261.5, 0.5, 0, -90, 'tipsy', outQuad, inQuad)
+	mb(261.5, 0.5, 0, -100, 'tinyx', outQuad, inQuad)
+	mb(261.5, 0.5, 0, 50, 'tinyy', outQuad, inQuad)
+	
+	mb(262, 1, 0, -150, 'tinyx', outCirc, outCirc)
+	mb(262, 1, 0, 70, 'tinyy', outCirc, outCirc)
+	mb(262, 0.5, 0, -25, 'invert', outCubic, inCubic)
+	mb(262.5, 0.5, 0, 25, 'invert', outCubic, inCubic)
+	
+	me(262, 2, 100, 0, 'reverse', l, inOutExpo)
+	for c = 0, 3 do -- wew lad
+		mb(262, 2, 0, -250, 'tinyy'..c, inExpo, outExpo)
+		mb(262, 2, 0, 80, 'tinyx'..c, inExpo, outExpo)
+	end
+	
+	set{264, -400, 'drunkoffset'}
+	mb(264, 0.5, 0, -100, 'drunk', outQuad, inQuad)
+	mb(264.5, 0.5, 0, 100, 'drunk', outQuad, inQuad)
+	mb(264, 1, 0, -30, 'skewx', outCirc, inCirc)
+	
+	mb(265, 0.5, 0, 90, 'tipsy', outQuad, inQuad)
+	mb(265, 0.5, 0, 50, 'tinyx', outQuad, inQuad)
+	mb(265, 0.5, 0, -100, 'tinyy', outQuad, inQuad)
+	mb(265.5, 0.5, 0, -90, 'tipsy', outQuad, inQuad)
+	mb(265.5, 0.5, 0, -100, 'tinyx', outQuad, inQuad)
+	mb(265.5, 0.5, 0, 50, 'tinyy', outQuad, inQuad)
+	
+	mb(266, 1, 0, 50, 'skewx', outExpo, inCirc)
+	mb(266, 1, 0, 20, 'invert', outCirc, inCirc)
+	mb(266, 1, 0, -50, 'tinyx', outCirc, inQuad)
+	--mb(10, 1, 0, 100, 'drunk', outExpo, inCirc)
+	mb(267, 1, 0, 70, 'skewy', outCirc, inQuad)
+	mb(267, 1, 0, -100, 'tinyy', outCirc, inQuad)
+	mb(267, 1, 0, -20, 'invert', outCirc, inCirc)
+	--mb(11, 1, 0, -100, 'drunk', outExpo, inCirc)
+	mb(267, 1, 0, -100, 'tipsy', outExpo, inCirc)
+	
+	set{268, 0, 'orient'}
+	me(268, 4, 360*2, 0, 'roty', l, outQuad)
+	me(272, 4, -360*2, 0, 'roty', l, outQuad)
+	for i = 268, 274 do
+		mb(i, 1, 0, 100, 'invert', outCirc, outCirc)
+		mb(i, 0.5, 0, -150, 'tinyx', outCirc, inQuad)
+		mb(i, 0.5, 0, 40, 'tinyy', outCirc, inQuad)
+		mb(i+0.5, 0.5, 0, -150, 'tinyy', outCirc, inQuad)
+		mb(i+0.5, 0.5, 0, 40, 'tinyx', outCirc, inQuad)
+	end
+	
+	reset{267, plr = 5}
+	func{268, function()
+		PP[5]:hidden(0)
+	end}
+	
+	set{268, 70, 'zoom', -50, 'x', 10, 'rotz', 100, 'reverse', plr = 5}
+	
+	for i, v in ipairs(weh) do
+		if v[2] == 1 then
+			me(v[1]+256, 0.25, 0, 25, 'flip', l, outQuad, 5)
+			me(v[1]+256, 0.25, 0, -75, 'invert', l, outQuad, 5)
+		else
+			me(v[1]+256, 0.25, 25, 0, 'flip', l, outQuad, 5)
+			me(v[1]+256, 0.25, -75, 0, 'invert', l, outQuad, 5)
+		end
+		me(v[1]+256, 0.5, -100, 0, 'tinyx', l, outQuad, 5)
+		me(v[1]+256, 0.5, 50, 0, 'tinyy', l, outQuad, 5)
+		me(v[1]+256, 0.5, 40*(modulo(v[1], 2) * 2 - 1), 0, 'tipsy', l, outQuad, 5)
+	end
+	mb(268, 1, 100, 130, 'zoomy', outCirc, inCirc, 5)
+	mb(268, 1, 100, 80, 'zoomx', outCirc, inCirc, 5)
+	
+	me(271, 2, 0, 100, 'reverse', l, inOutCirc)
+	
+	set{272, 50, 'x', -10, 'rotz', 1.25, 'xmod', 100, 'drawsize', 0, 'reverse', plr = 5}
+	
+	for i = 272, 275 do
+		local m = (modulo(i, 2) * 2 - 1)
+		mb(i, 1, 95, 105, 'zoomy', outBack, inQuad, 5)
+		mb(i, 1, 110, 85, 'zoomx', outBack, inQuad, 5)
+		mb(i, 1, 0, 20*m, 'invert', outBack, inQuad, 5)
+		mb(i, 1, 0, 30*m, 'tipsy', outCirc, inCirc, 5)
+	end
+	
+	func{276, function()
+		PP[5]:hidden(1)
+	end}
+	reset{276, plr = 5}
+	
+	func{268, function()
+		ws_layer1a:cropright(0.6)
+		ws_layer1b:cropleft(0.4)
+	end}
+	mb(268, 4, 0, 120, 'layergapx', outCirc, inExpo)
+	func{272, function()
+		ws_layer1a:cropright(0.4)
+		ws_layer1b:cropleft(0.6)
+	end}
+	mb(272, 4, 0, 120, 'layergapx', outCirc, inExpo)
+	
+	-- intro Copied from
+	set{276, -50, 'orient'}
+	me(276, 1.5, -200, 0, 'tiny', l, outCubic)
+	for i = 276, 282, 2 do
+		local m = modulo(i/2, 2) * 2 - 1
+		mb(i, 2, 0, 100*m, 'tipsy', inExpo, outExpoExpo)
+		mb(i, 2, 0, -50, 'tinyy', inExpo, outExpoExpo)
+		mb(i, 2, 0, 20, 'tinyx', inExpo, outExpoExpo)
+		me(i+1, 1.5, -200, 0, 'tiny', l, outCubic)
+		
+		mb(i, 2, 0, 70*m, 'drunk', outCirc, inCirc)
+		mb(i, 2, 0, -20*m, 'roty', outCirc, inQuad)
+		mb(i, 2, 0, 50, 'wave', outCirc, inCirc)
+		
+		func{i+1, 1, outCubic, 1.05, 1, function(a) ws_roulettewheel:zoom(a) end}
+		func{i+1, 1, outCubic, 0.65, 0.6, function(a) ws_diag:zoomx(a) end}
+	end
+	me(276, 8, 0, -40, 'rotx', l, inOutSine)
+	me(284, 4, -40, 0, 'rotx', l, inOutExpo)
+	
+	for i = 288, 291, 0.75 do
+		local m = modulo(i*4, 2) * 2 - 1
+		mb(i, 0.75, 0, 20*m, 'rotationy', outCirc, inCirc)
+		mb(i-(0.75/2), 0.75, 100, 70, 'reverse', inExpo, outExpo)
+		mb(i-(0.75/2), 0.75, 0, -20, 'flip', inExpo, outExpo)
+		me(i, 1, -200, 0, 'tiny', l, outCubic)
+		me(i, 1, -40*m, 0, 'dizzy', l, outCubic)
+		
+		func{i, 1, outCubic, 1.15, 1, function(a) ws_roulettewheel:zoom(a) end}
+		func{i, 1, outCubic, 0.75, 0.6, function(a) ws_diag:zoomx(a) end}
+		func{i, 1, outCubic, -80, -100, function(a) ws_squareframe:z(a) end}
+		func{i, 1, outCubic, 5.1, 5, function(a) ws_plusbg:zoom(a) end}
+	end
+	me(291, 1, 110, 0, 'zoom', l, inExpo)
+	me(291, 1, -200, 0, 'tinyy', l, inExpo)
+	me(291, 1, 0, -20, 'rotationx', l, outCirc)
+	
+	set{284, -100, 'orient'}
+	for i, v in ipairs(dicbag32) do
+		local m = modulo(i, 2) * 2 - 1
+		me(v[1]+256, 0.5, -150, 0, 'tiny', l, outCubic)
+		mb(v[1]+256, 0.5, 0, 50*m, 'drunk', outQuad, inQuad)
+	end
+	
+	for i = 286, 287, 0.5 do
+		local m = modulo(i*2, 2) * 2 - 1
+		mb(i, 1, 100, 140, 'zoom', inCubic, outCubic)
+		mb(i, 1, 0, 5*m, 'rotationz', inCirc, outCirc)
+		mb(i, 1, 0, 25*m, 'invert', inCirc, outCirc)
+		me(i+0.5, 1, -200, 0, 'tiny', l, outCubic)
+	end
+	
+	func{290, 2, inOutExpoExpo, 1, 1.2, function(a) ws_topsprite:zoom(a) end}
+	func{291, 2, outExpoExpo, 0, 1, function(a) ws_cover:diffusealpha(a) end}
+	
+end)"
+Type = "ActorFrame"
+><children>
+	<!-- bottom layer -->
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			ws_black = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(0, 0, 0, 1)
+		end"
+	/>
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			ws_grad1bottom = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(62/255, 93/255, 101/255, 1)
+		end"
+	/>
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			ws_grad1top = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(31/255, 45/255, 51/255, 1)
+			
+			self:fadetop(0.75)
+		end"
+	/>
+	<Layer
+		File = "squarehollowbutsmaller.png"
+		OnCommand="%function(self)
+			ws_hollowsquarebg = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoom(5)
+			
+			self:hidden(0)
+			self:diffuse(1, 1, 1, 0.2)
+			
+			self:customtexturerect(0, 0, 70, 70)
+			self:texcoordvelocity(-0.8, 0, 0)
+		end"
+	/>
+	
+	<Layer
+		File = "squarebutsmaller.png"
+		OnCommand="%function(self)
+			ws_squarebg = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoom(5)
+			
+			self:hidden(0)
+			self:diffuse(1, 1, 1, 0.2)
+			
+			self:customtexturerect(0, 0, 50, 50)
+			self:texcoordvelocity(-0.8, 0, 0)
+		end"
+	/>
+	
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			ws_glowtop = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(170/255, 255/255, 229/255, 0)
+			
+			self:fadebottom(1.95)
+		end"
+	/>
+	
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			ws_glowbottom = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(170/255, 255/255, 229/255, 0)
+			
+			self:fadetop(1.95)
+		end"
+	/>	
+	
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			ws_glowleft = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(170/255, 255/255, 229/255, 0)
+			
+			self:faderight(1.95)
+		end"
+	/>
+	
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			ws_glowright = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(170/255, 255/255, 229/255, 0)
+			
+			self:fadeleft(1.95)
+		end"
+	/>
+	
+	<Layer Type="ActorFrame" Var = "ws_sexagon" OnCommand="%function(self) self:fov(45) self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y) end"><children>
+		<Layer
+			File = "sexagon.png"
+			OnCommand="%function(self)
+				ws_hex1 = self
+				
+				self:xy(0, 0)
+				self:zoom(0.7)
+				
+				self:spin()
+				self:effectmagnitude(0, 0, 40)
+				
+				self:hidden(0)
+				self:diffuse(1, 1, 1, 0.3)
+			end"
+		/>
+		<Layer
+			File = "sexagon.png"
+			OnCommand="%function(self)
+				ws_hex2 = self
+				
+				self:xy(0, 0)
+				self:zoom(0.55)
+				
+				self:spin()
+				self:effectmagnitude(0, 0, -60)
+				
+				self:hidden(0)
+				self:diffuse(1, 1, 1, 0.4)
+			end"
+		/>
+	</children></Layer>
+
+	<Layer Type = "ActorProxy" Name = "PP[5]" />
+	
+	<Layer Type = "ActorProxy" Name = "PPP[1]" />
+	<Layer Type = "ActorProxy" Name = "PPP[2]" />
+	<Layer Type = "ActorProxy" Name = "PPP[3]" />
+	
+	<Layer Type = "ActorProxy" Name = "PEPE[1]" />
+	<Layer Type = "ActorProxy" Name = "PEPE[2]" />
+
+	<Layer Type = "ActorFrameTexture" InitCommand="%xero.aft" Name="ws_aft2" />
+	
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(0, 0, 0, 1)
+		end"
+	/>
+	
+	<Layer Type="Quad" OnCommand="%xero(function(self) self:diffuse(1,1,1,0) self:stretchto(0,0,sw,sh) self:clearzbuffer(1) end)" />
+	
+	<!-- top layer -->
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			ws_grad1bottom = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(247/255, 222/255, 141/255, 1)
+		end"
+	/>
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			ws_grad1top = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(229/255, 179/255, 16/255, 1)
+			
+			self:fadetop(0.75)
+		end"
+	/>
+	<Layer
+		File = "plusbutsmaller.png"
+		OnCommand="%function(self)
+			ws_plusbg = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoom(5)
+			
+			self:hidden(0)
+			self:rotationz(30)
+			self:diffuse(1, 1, 1, 0.2)
+			
+			self:customtexturerect(0, 0, 50, 50)
+			self:texcoordvelocity(0, 0.2, 0)
+		end"
+	/>
+	
+	<!--<Layer
+		File = "diag.png"
+		OnCommand="%function(self)
+			ws_diagshade = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			
+			self:zoomx(0.6)
+			self:zoomy(5)
+			self:diffuse(74/255, 109/255, 124/255, 0.2)
+			
+			self:customtexturerect(1, 8, 0, 0)
+			self:texcoordvelocity(-0.3, 0.3)
+			self:hidden(0)
+		end"
+	/>-->
+	
+	<Layer
+		File = "diag.png"
+		OnCommand="%function(self)
+			ws_diag = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			
+			self:zoomx(0.6)
+			self:zoomy(5)
+			self:diffuse(1, 1, 1, 0.5)
+			
+			self:customtexturerect(1, 8, 0, 0)
+			self:texcoordvelocity(-0.3, 0.3)
+			self:hidden(0)
+		end"
+	/>		
+	
+	<Layer
+		File = "diag.png"
+		OnCommand="%function(self)
+			ws_diag2 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y-800)
+			
+			self:zoomy(0.3)
+			self:zoomx(3)
+			self:diffuse(1, 1, 1, 0.5)
+			
+			self:customtexturerect(8, 1, 0, 0)
+			self:texcoordvelocity(-0.3, 0.3)
+			self:hidden(0)
+		end"
+	/>		
+	
+	<Layer
+		File = "diag.png"
+		OnCommand="%function(self)
+			ws_diag3 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y+800)
+			
+			self:zoomy(0.3)
+			self:zoomx(3)
+			self:diffuse(1, 1, 1, 0.5)
+			
+			self:customtexturerect(8, 1, 0, 0)
+			self:texcoordvelocity(0.3, -0.3)
+			self:hidden(0)
+		end"
+	/>	
+	
+	<Layer
+		File="dash.png"
+		OnCommand="%function(self)
+			ws_dash1 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y+500)
+			
+			self:customtexturerect(0, 0, 30, 1)
+			self:texcoordvelocity(-0.5, 0, 0)
+			
+			self:zoomy((1/30)*10)
+			self:zoomx(8)
+			
+			self:diffuse(31/255, 45/255, 51/255, 0.5)
+			
+		end"
+	/>
+	
+	<Layer Type="ActorFrame" Var = "ws_roulettewheel" OnCommand="%function(self) self:fov(45) self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y) end"><children>
+		<Layer
+			File = "bigballhollow.png"
+			OnCommand="%function(self)
+				ws_roulcircle1 = self
+				self:xy(0, 0)
+				self:zoom(0.5)
+				
+				self:hidden(0)
+				self:diffuse(1, 1, 1, 0.5)
+			end"
+		/>
+		<Layer
+			File = "bigballhollow.png"
+			OnCommand="%function(self)
+				ws_roulcircle2 = self
+				self:xy(0, 0)
+				self:zoom(0.45)
+				
+				self:hidden(0)
+				self:diffuse(1, 1, 1, 0.5)
+			end"
+		/>
+		
+		<Layer
+			File = "ball.png"
+			OnCommand="%function(self)
+				ws_roulball1 = self
+				self:xy(0, 0)
+				self:zoom(0.5)
+				
+				self:hidden(0)
+				self:diffuse(1, 1, 1, 0.5)
+			end"
+		/>
+		<Layer
+			File = "ball.png"
+			OnCommand="%function(self)
+				ws_roulball2 = self
+				self:xy(0, 0)
+				self:zoom(0.5)
+				
+				self:hidden(0)
+				self:diffuse(1, 1, 1, 0.5)
+			end"
+		/>
+		<Layer
+			File = "ball.png"
+			OnCommand="%function(self)
+				ws_roulball3 = self
+				self:xy(0, 0)
+				self:zoom(0.5)
+				
+				self:hidden(0)
+				self:diffuse(1, 1, 1, 0.5)
+			end"
+		/>
+		<Layer
+			File = "ball.png"
+			OnCommand="%function(self)
+				ws_roulball4 = self
+				self:xy(0, 0)
+				self:zoom(0.5)
+				
+				self:hidden(0)
+				self:diffuse(1, 1, 1, 0.5)
+			end"
+		/>
+		<Layer
+			File = "plushollow.png"
+			OnCommand="%function(self)
+				ws_roulcross = self
+				self:xy(0, 0)
+				self:zoom(1.4)
+				
+				self:hidden(0)
+				self:rotationz(45)
+				self:diffuse(1, 1, 1, 0.5)
+			end"
+		/>
+	
+	</children></Layer>
+	
+	
+	<Layer Type="ActorFrame" Var = "ws_squareframe" OnCommand="%function(self) self:fov(45) end"><children>
+		<Layer Type="ActorFrame" Var = "ws_squareset" OnCommand="%function(self) self:fov(45) end"><children>
+			<Layer
+				File="squarehollow.png"
+				OnCommand="%function(self)
+					ws_squareshade1 = self
+					self:x(SCREEN_CENTER_X+5)
+					self:y(SCREEN_CENTER_Y+85)
+					
+					self:customtexturerect(0, 0, 30, 1)
+					self:texcoordvelocity(1, 0, 0)
+					
+					self:zoomy((1/30)*5)
+					self:zoomx(5)
+					
+					self:diffuse(0, 0, 0, 0.2)
+					
+					self:SetTextureFiltering(true)
+				end"
+			/>
+			<Layer
+				File="square.png"
+				OnCommand="%function(self)
+					ws_squareshade2 = self
+					self:x(SCREEN_CENTER_X+5)
+					self:y(SCREEN_CENTER_Y+45)
+					
+					self:customtexturerect(0, 0, 30, 1)
+					self:texcoordvelocity(-1, 0, 0)
+					
+					self:zoomy((1/30)*5)
+					self:zoomx(5)
+					
+					self:diffuse(0, 0, 0, 0.2)
+					
+					self:SetTextureFiltering(true)
+				end"
+			/>
+			<Layer
+				File="squarehollow.png"
+				OnCommand="%function(self)
+					ws_squareshade3 = self
+					self:x(SCREEN_CENTER_X+5)
+					self:y(SCREEN_CENTER_Y+5)
+					
+					self:customtexturerect(0, 0, 30, 1)
+					self:texcoordvelocity(1, 0, 0)
+					
+					self:zoomy((1/30)*5)
+					self:zoomx(5)
+					
+					self:diffuse(0, 0, 0, 0.2)
+					
+					self:SetTextureFiltering(true)
+				end"
+			/>
+			<Layer
+				File="square.png"
+				OnCommand="%function(self)
+					ws_squareshade4 = self
+					self:x(SCREEN_CENTER_X+5)
+					self:y(SCREEN_CENTER_Y-35)
+					
+					self:customtexturerect(0, 0, 30, 1)
+					self:texcoordvelocity(-1, 0, 0)
+					
+					self:zoomy((1/30)*5)
+					self:zoomx(5)
+					
+					self:diffuse(0, 0, 0, 0.2)
+					
+					self:SetTextureFiltering(true)
+				end"
+			/>
+			<Layer
+				File="squarehollow.png"
+				OnCommand="%function(self)
+					ws_squareshade5 = self
+					self:x(SCREEN_CENTER_X+5)
+					self:y(SCREEN_CENTER_Y-75)
+					
+					self:customtexturerect(0, 0, 30, 1)
+					self:texcoordvelocity(1, 0, 0)
+					
+					self:zoomy((1/30)*5)
+					self:zoomx(5)
+					
+					self:diffuse(0, 0, 0, 0.2)
+					
+					self:SetTextureFiltering(true)
+				end"
+			/>
+			
+			<!-- not shades -->
+			<Layer
+				File="squarehollow.png"
+				OnCommand="%function(self)
+					ws_square1 = self
+					self:x(SCREEN_CENTER_X)
+					self:y(SCREEN_CENTER_Y+80)
+					
+					self:customtexturerect(0, 0, 30, 1)
+					self:texcoordvelocity(1, 0, 0)
+					
+					self:zoomy((1/30)*5)
+					self:zoomx(5)
+					
+					self:diffusealpha(1)
+					
+					self:SetTextureFiltering(true)
+				end"
+			/>
+			<Layer
+				File="square.png"
+				OnCommand="%function(self)
+					ws_square2 = self
+					self:x(SCREEN_CENTER_X)
+					self:y(SCREEN_CENTER_Y+40)
+					
+					self:customtexturerect(0, 0, 30, 1)
+					self:texcoordvelocity(-1, 0, 0)
+					
+					self:zoomy((1/30)*5)
+					self:zoomx(5)
+					
+					self:diffusealpha(1)
+					
+					self:SetTextureFiltering(true)
+				end"
+			/>
+			<Layer
+				File="squarehollow.png"
+				OnCommand="%function(self)
+					ws_square3 = self
+					self:x(SCREEN_CENTER_X)
+					self:y(SCREEN_CENTER_Y)
+					
+					self:customtexturerect(0, 0, 30, 1)
+					self:texcoordvelocity(1, 0, 0)
+					
+					self:zoomy((1/30)*5)
+					self:zoomx(5)
+					
+					self:diffusealpha(1)
+					
+					self:SetTextureFiltering(true)
+				end"
+			/>
+			<Layer
+				File="square.png"
+				OnCommand="%function(self)
+					ws_square4 = self
+					self:x(SCREEN_CENTER_X)
+					self:y(SCREEN_CENTER_Y-40)
+					
+					self:customtexturerect(0, 0, 30, 1)
+					self:texcoordvelocity(-1, 0, 0)
+					
+					self:zoomy((1/30)*5)
+					self:zoomx(5)
+					
+					self:diffusealpha(1)
+					
+					self:SetTextureFiltering(true)
+				end"
+			/>
+			<Layer
+				File="squarehollow.png"
+				OnCommand="%function(self)
+					ws_square5 = self
+					self:x(SCREEN_CENTER_X)
+					self:y(SCREEN_CENTER_Y-80)
+					
+					self:customtexturerect(0, 0, 30, 1)
+					self:texcoordvelocity(1, 0, 0)
+					
+					self:zoomy((1/30)*5)
+					self:zoomx(5)
+					
+					self:diffusealpha(1)
+					
+					self:SetTextureFiltering(true)
+				end"
+			/>
+		</children></Layer>
+	</children></Layer>
+	
+	<!--<Layer
+		File="test.png"
+		OnCommand="%function(self)
+			ws_test = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:diffuse(0.5, 0, 0.5, 1)
+		end"
+	/>-->
+	<Layer
+		File="dashhollow.png"
+		OnCommand="%function(self)
+			ws_dashborder1 = self
+			self:x(SCREEN_CENTER_X-110)
+			self:y(SCREEN_CENTER_Y)
+			self:rotationz(90)
+			
+			self:customtexturerect(0, 0, 30, 1)
+			self:texcoordvelocity(0.5, 0, 0)
+			
+			self:zoomx((1/30)*15)
+			self:zoomy(12)
+			
+			self:diffuse(59/255, 42/255, 81/255, 0.5)
+			self:hidden(1)
+			
+			self:SetTextureFiltering(false)
+		end"
+	/>
+	<Layer
+		File="dashhollow.png"
+		OnCommand="%function(self)
+			ws_dashborder2 = self
+			self:x(SCREEN_CENTER_X+110)
+			self:y(SCREEN_CENTER_Y)
+			self:rotationz(90)
+			
+			self:customtexturerect(0, 0, 30, 1)
+			self:texcoordvelocity(-0.5, 0, 0)
+			
+			self:zoomx((1/30)*15)
+			self:zoomy(12)
+			
+			self:diffuse(59/255, 42/255, 81/255, 0.5)
+
+			self:hidden(1)
+			
+			self:SetTextureFiltering(false)
+		end"
+	/>
+	<Layer
+		File="dash.png"
+		OnCommand="%function(self)
+			ws_dashborder3 = self
+			self:x(SCREEN_CENTER_X-105)
+			self:y(SCREEN_CENTER_Y+5)
+			self:rotationz(90)
+			
+			self:customtexturerect(0, 0, 30, 1)
+			self:texcoordvelocity(0.5, 0, 0)
+			
+			self:zoomx((1/30)*15)
+			self:zoomy(12)
+			
+			self:diffuse(59/255, 42/255, 81/255, 1)
+
+			self:hidden(1)
+			
+			self:SetTextureFiltering(false)
+		end"
+	/>
+	<Layer
+		File="dash.png"
+		OnCommand="%function(self)
+			ws_dashborder4 = self
+			self:x(SCREEN_CENTER_X+105)
+			self:y(SCREEN_CENTER_Y+5)
+			self:rotationz(90)
+			
+			self:customtexturerect(0, 0, 30, 1)
+			self:texcoordvelocity(-0.5, 0, 0)
+			
+			self:zoomx((1/30)*15)
+			self:zoomy(12)
+			
+			self:diffuse(59/255, 42/255, 81/255, 1)
+
+			self:hidden(1)
+			
+			self:SetTextureFiltering(false)
+		end"
+	/>
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			ws_cover = self
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(0, 0, 0, 0)
+		end"
+	/>
+	
+	<Layer Type = "ActorProxy" Name = "PP[1]" />
+	<Layer Type = "ActorProxy" Name = "PP[2]" />
+	<Layer Type = "ActorProxy" Name = "PP[3]" />
+	<Layer Type = "ActorProxy" Name = "PP[4]" />
+	
+	<Layer Type = "ActorFrameTexture" InitCommand="%xero.aft" Name="ws_aft1" />
+
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(0, 0, 0, 1)
+		end"
+	/>
+	
+	<Layer Type = "Sprite" Texture="white.png" Frag="plasma.frag"
+		OnCommand="%function(self)
+			ws_plasma = self
+			
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			self:hidden(0)
+			self:diffuse(219/255, 6/255, 98/255, 1)
+			
+			self:GetShader():uniform1f('zoom', 1)
+		end" 
+	/>
+	<Layer Type = "ActorFrameTexture" InitCommand="%xero.aft" Name="ws_plasmaaft" />
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(0, 0, 0, 1)
+		end"
+	/>
+	
+	<Layer Type = "Sprite" InitCommand="%xero.sprite" Name="ws_layer2a"/>
+	<Layer Type = "Sprite" InitCommand="%xero.sprite" Name="ws_layer2b" Frag="pixelate.frag"/>
+	<Layer Type = "Sprite" InitCommand="%xero.sprite" Name="ws_layer1a"/>
+	<Layer Type = "Sprite" InitCommand="%xero.sprite" Name="ws_layer1b"/>
+	<Layer Type = "Sprite" InitCommand="%xero.sprite" Name="ws_layer1c"/>
+	<Layer Type = "Sprite" InitCommand="%xero.sprite" Name="ws_layer1d"/>
+	
+	<Layer Type = "ActorFrameTexture" InitCommand="%xero.aft" Name="ws_topaft" />
+	<Layer Type = "Quad"
+		OnCommand="%function(self)
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			
+			self:hidden(0)
+			self:diffuse(0, 0, 0, 1)
+		end"
+	/>
+	
+	<!-- the actual things you are seeing -->
+	<Layer Type = "Sprite" InitCommand="%xero.sprite" Name="ws_plasmapixelated" Frag="pixelate.frag"/>
+	<Layer Type="ActorFrame" Var = "ws_stupidfuckframe" OnCommand="%function(self) self:fov(45) self:rotationy(-20) self:rotationx(10) end"><children>
+		<Layer
+			File = "squarehollow.png"
+			OnCommand="%function(self)
+				ws_undersquarebg = self
+				self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+				self:zoom(5)
+				
+				self:hidden(0)
+				self:rotationz(0)
+				self:diffuse(1, 1, 1, 0.3)
+				
+				self:rotationz(3)
+				
+				self:customtexturerect(0, 0, 20, 20)
+				self:texcoordvelocity(-0.3, 0.2, 0)
+			end"
+		/>
+	</children></Layer>
+		
+	<Layer Type="ActorFrame" Var = "ws_topspriteframe" OnCommand="%function(self) self:fov(45) end"><children> <!-- CURSE YOU NITG -->
+		<Layer Type="ActorFrame" Var = "ws_borderframe" OnCommand="%function(self) self:fov(63) self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y) end"><children>
+			<Layer Type="ActorFrame" Var = "SHITFUCKASSPENISSTINKY" OnCommand="%function(self) self:xy(-SCREEN_CENTER_X, -SCREEN_CENTER_Y) end"><children>
+				<Layer Type = "Quad"
+					OnCommand="%function(self)
+						ws_border = self
+						self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+						self:basezoomx(SCREEN_WIDTH)
+						self:basezoomy(SCREEN_HEIGHT)
+						
+						self:hidden(0)
+						self:diffuse(1, 1, 1, 1)
+					end"
+				/>
+			</children></Layer>
+		</children></Layer>
+		
+		<Layer Type = "Sprite" InitCommand="%xero.sprite" Name="ws_topsprite"/>
+		
+		<Layer Type = "ActorProxy" Name = "PC[1]" />
+		<Layer Type = "ActorProxy" Name = "PC[2]" />
+		<Layer Type = "ActorProxy" Name = "PC[3]" />
+		<Layer Type = "ActorProxy" Name = "PC[4]" />
+		<Layer Type = "ActorProxy" Name = "PC[5]" />
+		
+		<Layer Type = "ActorProxy" Name = "PJ[1]" />
+		<Layer Type = "ActorProxy" Name = "PJ[2]" />
+		<Layer Type = "ActorProxy" Name = "PJ[3]" />
+		<Layer Type = "ActorProxy" Name = "PJ[4]" />
+		<Layer Type = "ActorProxy" Name = "PJ[5]" />
+			
+		<Layer Type = "Quad"
+			OnCommand="%function(self)
+				ws_blackoverlay = self
+				self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+				self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+				
+				self:hidden(0)
+				self:diffuse(0, 0, 0, 1)
+			end"
+		/>
+	</children></Layer>
+	
+</children></Mods>

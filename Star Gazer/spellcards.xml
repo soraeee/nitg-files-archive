@@ -1,0 +1,56 @@
+<Layer Type="ActorFrame" InitCommand="%function(self)
+	local send = {}
+
+	send.spellcards = function(cards)
+		if table.getn(cards) == 0 then return false end
+		
+		local s = GAMESTATE:GetCurrentSong()
+		s:SetNumSpellCards(table.getn(cards))
+		for i=1,table.getn(cards) do
+			local a = cards[i]
+			s:SetSpellCardTiming(i-1,a[1],a[2])
+			s:SetSpellCardName(i-1,a[3])
+			s:SetSpellCardDifficulty(i-1,a[4])
+			s:SetSpellCardColor(i-1,a[5][1],a[5][2],a[5][3],a[5][4])
+		end
+		
+	end
+	
+	send.labels = function(labels)
+		if table.getn(labels) == 0 then return false end
+		
+		local s = GAMESTATE:GetCurrentSong()
+		s:ClearLabels();
+		for i=1,table.getn(labels) do
+			s:AddLabel(labels[i][1],labels[i][2])
+		end
+		
+	end
+	
+	local function rgba(r, g, b, a)
+		if type(r) == 'table' then
+			if not r[4] then r[4] = 1 end
+			return {r[1] / 255, r[2] / 255, r[3] / 255, r[4]}
+		else
+			if not a then a = 1 end
+			return r / 255, g / 255, b / 255, a
+		end
+	end
+	-- start, end, name, difficulty, color
+	local spellcards = {
+		{16,31,'bit by bit',8,rgba({30,47,143})},
+		{32,95.5,'say good-bye bye to your kneecaps',11,rgba({41,30,143})},
+		{96,111.5,'smooch the sky',8,rgba({60,30,143})},
+		{112,143.5,'urban dance',10,rgba({77,30,143})},
+		{144,175.75,'sightseeing',11,rgba({96,30,143})},
+		{176,239,'float',10,rgba({115,30,143})},
+		{240,249,'go to bed',9,rgba({132,30,143})},
+	}
+	
+	-- beat, label name
+	local labels = {
+	}
+	
+	send.spellcards(spellcards)
+	send.labels(labels)
+end"/>

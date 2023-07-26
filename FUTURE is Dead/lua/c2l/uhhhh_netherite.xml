@@ -1,0 +1,12 @@
+<CODE Type="Quad" OnCommand="hidden,1"
+InitCommand="%function(self)
+uhhhh_netherite = {
+	{52.000,0,1},
+	{56.000,1,1},
+	{64.000,0,1},
+	{68.000,1,1},
+	{72.000,0,1},
+	{76.000,1,1},
+	{80.000,0,1},
+}
+end"/>

@@ -1,0 +1,1952 @@
+<ActorFrame
+InitCommand="%function(self)
+
+	nitg_version = FUCK_EXE and tonumber(GAMESTATE:GetVersionDate()) >= 20180617 --NotITG version number to check for, v3 by default
+	
+	if not nitg_version then
+		SCREENMAN:SystemMessage('Outdated version of NotITG detected, mods will not work');
+	end
+	
+	songName = GAMESTATE:GetCurrentSong():GetSongDir();
+	
+	m_bl = 60/145 --use this to define length of a beat for use in the rest of the song
+	sw = SCREEN_WIDTH
+	sh = SCREEN_HEIGHT
+	scx = SCREEN_CENTER_X
+	scy = SCREEN_CENTER_Y --shortcuts
+	
+	function Plr(pn)
+		return _G['P'..pn]
+	end
+	--GAMESTATE:LaunchAttack(0,9999,'scalable2')
+	
+	ftr_slumpage = false
+	
+	if GAMESTATE:GetCurrentSteps(0):GetDifficulty()==5 or GAMESTATE:GetCurrentSteps(1):GetDifficulty()==5 then --Thanks Kay Pooma
+		ftr_slumpage = true
+	end
+end"
+><children><ActorFrame Condition="nitg_version"
+OnCommand="%function(self)
+	nvidia = false
+	alphamult = 1
+	if string.find(string.lower(PREFSMAN:GetPreference('LastSeenVideoDriver')), 'nvidia') or string.find(string.lower(DISPLAY:GetVendor()),'nvidia') then
+		Trace('NVidia graphics driver detected.')
+		Trace('AFT multiplier set to 0.9')
+		nvidia = true
+		alphamult = 0.9
+	end
+	if not string.find(string.lower(PREFSMAN:GetPreference('VideoRenderers')), 'opengl')
+	or string.find(string.lower(PREFSMAN:GetPreference('VideoRenderers')), 'd3d')
+	and string.find(string.lower(PREFSMAN:GetPreference('VideoRenderers')), 'opengl') 
+	and string.find(string.lower(PREFSMAN:GetPreference('VideoRenderers')), 'd3d') < 
+	string.find(string.lower(PREFSMAN:GetPreference('VideoRenderers')), 'opengl') then
+		SCREENMAN:SystemMessage('D3D Video Renderer detected. Expect textures to fail.');
+	end
+end"
+><children>
+
+	<Layer
+		Type="Quad"
+		InitCommand="hidden,1"
+		OnCommand="sleep,1000"
+	/>
+	
+	<Layer File="modhelpers" />
+	<Layer File="easing" />	
+	<Layer File="spellcards" />
+	
+	<!--c2l shit -->
+	<Layer File="c2l/menis" />
+	<Layer File="c2l/menis2" />
+	<Layer File="c2l/rats" />
+	<Layer File="c2l/bitch_ass_mic" />
+	<Layer File="c2l/do_you_fart" />
+	<Layer File="c2l/conk1" />
+	<Layer File="c2l/uhhhh_netherite" />
+	
+	<Layer
+		Type="Quad"
+		OnCommand="hidden,1"
+		InitCommand="%function(self)
+		
+			checked = false;
+		
+			---------------------------------------------------------
+			---------DOCUMENTATION-----------------------------------
+			---------------------------------------------------------
+			
+			--function perframe( beat, endBeat )
+				--return true if the current beat is between 'beat' and 'endBeat'
+			
+			--function mod_shader(beat,key,which)
+				--turn on shader key at specified beat (up to 10 keys available, defined by 'which' = 0-9
+				
+			--function mod_insert(beat,len,mod,len_or_end,pn)
+				--insert mod into beat mods table
+			--function mod_insert2(time,len,mod,len_or_end,pn)
+				--insert mod into time mods table
+			--function mod_ease(beat, len, start_strength, end_strength, mod, len_or_end, ease_type, pn, sustain, opt1, opt2)
+				--insert mod into ease mods table
+			--function mod_perframe(start, end, function(beat, deltatime))
+				--insert function into perframe reader
+				
+			--function mod_message(beat,msg,persistent)
+				--insert something into the actions table.
+				--msg can also be a function. If string, a message gets broadcast at that beat
+				--if 'persistent' is true, message will run even if editor starts at a beat past it
+				
+			--function mod_blacklist(t,n)
+				--check if number n occurs in table t
+				--useful for doing 'every beat EXCEPT the contents of t'
+				
+			--function simple_m0d(beat,strength,mult,mod)
+			--function simple_m0d2(beat,strength,mult,mod,pn)
+			--function simple_m0d3(beat,strength,duration,bpm,mod,pn)
+				--activate mods at specific beat but also deactivate them
+				
+			--function mod_wiggle(beat,num,div,amt,speed,mod,pn,first)
+				--alternates a mod back and forth before resetting to 0
+				
+			--function mod_spring(beat,strength,num,mod,pn)
+				--like mod_wiggle, but springier
+			
+			--function mod_springt(time,strength,dur,mod,pn)
+				--time-based per-frame alternating mod that decreases based on how much time is left.
+					--think doorstopper
+			
+			--function mod_springt2(time,strength,dur,mod,pn)
+				--time-based per-frame alternating mod
+			
+			--function mod_spring_adjustable(beat,strength,num,period,mod,pn, first)
+				--it's not very good
+			
+			--function mod_beat(beat,strength,pn)
+				--turns on beat for the beat specified, at the desired strength	
+			
+			--function switcheroo_add(beat,which,speed,len,pn)
+				--adds a column swap at the desired beat
+			--[[	switcheroos = {normal = {0,0}, ldur = {0,0}, reset = {0,0},
+					flip = {100,0}, rudl = {100,0}, invert = {0,100}, dlru = {0,100},
+					ludr = {25,-75}, rdul = {75,75}, drlu = {25,125}, ulrd = {75,-125}, urld = {100,-100}}
+			]]
+			
+			--function mod_sugarkiller(beat,duration,speed,minstealth,maxstealth,pn)
+				--portable version of the effect from sugarkill X
+			
+			--NEW**
+			--function sugaroo_add(beat,len,speed,stealthvalmain,stealthvalsec,pn)
+				--a version of mod_sugarkiller stoken from Daikyi that actually works !
+				
+			--function mod_bounce(beat,length,start,apex,mod,ease_type,pn)
+			--function func_bounce(beat,length,start,apex,function,ease_type)
+				--eases out from start to apex, then eases back in from apex to start
+				--ease_type should be a string, i.e. 'Quad', 'Cubic', 'Circ'
+			
+			
+			
+			--function modulo(a, b)
+				--returns the remainder when a is divided by b, works properly with negatives unlike math.mod
+			
+			--function randomXD(t)
+				--returns a pseudo-random number between 0 and 1 seeded based on the given argument
+				--returns 0.5 if t is 0 (useful sometimes!)
+			
+			--function hidecol(beat,len,col,which,pn)
+				--stealth + dark + hidenoteflashes per column, insta-activate with normal modstrings
+				
+			--function hideease(beat,len,col,which,ease,sus,pn)
+				--hidecol but with eases
+				
+			--function SpawnPlayers(beat,lower,upper,which,persist)
+				--stolen from hal
+				--lower/upper is player numbers
+				--which: 'spawn'/'despawn'
+				--persist should probably be true
+			---------------------------------------------------------
+			--------END DOCUMENTATION--------------------------------
+			---------------------------------------------------------
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			init_modsp1 = '';
+			init_modsp2 = '';
+			
+			mod_plr = {};
+			
+			mod_firstSeenBeat = GAMESTATE:GetSongBeat(); --necessary to prevent long freezes
+			
+			
+---------------------------------------------------------------------------------------
+----------------------Begin tables 'n stuff--------------------------------------------
+---------------------------------------------------------------------------------------
+
+			--beat based mods
+			--{beat_start, beat_end, mods, len_or_end, player_number}
+			mods = {
+				{0,9999,'*-1 C300, *-1 overhead, *-1 approachtype, *-1 dizzyholds, *-1 stealthpastreceptors, *-1 modtimer *-1 hidemines','end'},
+			}
+			
+			--beat-based ease mods
+			--{beat_start, beat_end, mod_start, mod_end, mod/function, len_or_end, ease_type, player_number, sustainbeats, optional_param1, optional_param2}
+			--valid ease types are:
+				--linear
+				--inQuad    outQuad    inOutQuad    outInQuad
+				--inCubic   outCubic   inOutCubic   outInCubic
+				--inQuart   outQuart   inOutQuart   outInQuart
+				--inQuint   outQuint   inOutQuint   outInQuint
+				--inSine    outSine    inOutSine    outInSine
+				--inExpo    outExpo    inOutExpo    outInExpo
+				--inCirc    outCirc    inOutCirc    outInCirc
+				--inElastic outElastic inOutElastic outInElastic    --can take 2 optional parameters - amplitude & period
+				--inBack    outBack    inOutBack    outInBack       --can take 1 optional parameter  - spring amount
+				--inBounce  outBounce  inOutBounce  outInBounce
+				
+			mods_ease = {
+				-- EXAMPLE TWEEN: from beat 0 to 4, make rotationz go from 360 to 0 with the inOutBack tween
+				--{0, 4, 360, 0, 'rotationz', 'len', inOutBack},
+				
+				-- EXAMPLE TWEEN: from beat 4 to 8, rotate topscreen from 360 to 0 with the outBack tween
+				--{4, 4, 360, 0, function(a) SCREENMAN:GetTopScreen():rotationz(a) end, 'len', outBack},
+			}
+			
+			--time based mods
+			mod_time = 0;
+			--{time_start, time_end, mods, len_or_end, player_number}
+			mods2 = {
+			}
+			
+			-- you can now write perframe stuff without having to scroll down!
+			-- {beat_start,beat_end,function(beat,deltatime)}
+			mod_perframes = {
+				--{18,24,function(beat,deltatime)
+					-- do stuff every frame from beat 18-24
+					-- print(beat,deltatime)
+				--end},
+			}
+			
+			--this is both a message broadcaster and a function runner
+			--if you put {beat,'String'}, then 'String' is broadcast as a message on that beat
+			--if you put {beat,function() somecode end}, then function() is run at that beat
+			--see example on beat 0
+			
+			curaction = 1;
+			--{beat,thing,persists}
+			mod_actions = {
+				{0,'GetProxy',true},
+				{0,function()
+					for pn=1,2 do
+						local a = Plr(pn)
+						if a then
+							a:GetChild('Judgment'):hidden(1)
+							a:GetChild('Combo'):hidden(1)
+							a:SetFarDist(10000)
+						end
+					end
+					
+					for pn=1,2 do
+						local d = 0.25; if pn == 2 then d = 0.75 end
+						local b = _G['jud'..pn..'p']
+						if b then
+							b:hidden(0);
+							b:basezoomx(0.75);
+							b:basezoomy(0.75);
+							b:x(SCREEN_WIDTH*d)
+							b:y(SCREEN_HEIGHT*0.5)
+						end
+						local c = _G['com'..pn..'p']
+						if c then
+							c:hidden(0);
+							c:basezoomx(0.75);
+							c:basezoomy(0.75);
+							c:x(SCREEN_WIDTH*d)
+							c:y(SCREEN_HEIGHT*0.5)
+						end
+					end
+				end,true},
+				{0,function()
+					for pn = 1,2 do
+						local a = Plr(pn)
+						a:x(SCREEN_CENTER_X)
+					end
+				end,true},
+				{0,function()
+					for pn = 1,2 do
+						local a = SCREENMAN:GetTopScreen():GetChild('PlayerP' ..pn)
+						a:SetDrawByZPosition(true)
+					end
+				end,true},
+			}
+			
+---------------------------------------------------------------------------------------
+--***              	   begin Real Shit          	    		                  ***--
+---------------------------------------------------------------------------------------
+			local me = mod_ease
+			local mb = mod_bounce
+			local m = mod_insert
+			local mm = mod_message
+			local mpf = mod_perframe
+			m(0,4,'*-1 0% zoom,*-1 0% zoomz','end')
+			me(4,0.5,0,100,'zoom','len',outBack)
+			me(4,0.5,0,300,'zoomz','len',outBack,nil,16)
+			me(4,0.5,0,100,'movey','len',outBack,nil,16)
+			
+			m(0,36,'*-1 50% flip','end')
+			m(0,18.5,'*-1 500% drawsize,*-1 100% sudden,*-1 1000% suddenoffset','end')
+			m(0,18.5,'*-1 90% rotationx,*-1 -157% confusionxoffset,*-1 100% cover','end')
+			me(12,6,90,-20,'rotationx','len',inOutSine,nil,2)
+			me(12,6,-157,0,'confusionxoffset','len',inOutSine,nil,2.5)
+			
+			m(18.5,1,'*-1 100% drawsize','len')
+			me(18.5,36,0,1,function(a) if bg_default then bg_default:diffusealpha(a) end end,'end',inSine)
+			me(18.5,1,-270,0,'rotationx','len',outSine)
+			me(12,18,300,200,'zoomz','end',outSine,nil,36)
+			me(12,18,100,0,'movey','end',outSine,nil,36)
+			--me(18.5,1,471,0,'confusionxoffset','len',outSine)
+			--me(18.5,1.5,700,300,'cmod','len',outSine,nil,70)
+			
+			--what is a perframe
+			me(19,1,-600,0,'tiny','len',outSine)
+			mpf(0,18.5,function(beat,deltatime)
+				for c = 0,3 do
+					for pn = 1,2 do
+						local o = ((pn-1)*4+c)
+						GAMESTATE:ApplyGameCommand('mod,*-1 '..250*math.sin(beat+o/1.25) ..'% movex'..c,pn);
+						GAMESTATE:ApplyGameCommand('mod,*-1 '..-250*math.cos(beat+o/1.25) ..'% movez'..c,pn);
+					end
+				end
+			end)
+			mpf(18.5,35.5,function(beat,deltatime)
+				for c = 0,3 do
+					for pn = 1,2 do
+						local o = ((pn-1)*4+c)
+						GAMESTATE:ApplyGameCommand('mod,*-1 '..300*math.sin(beat+o/1.25) ..'% movex'..math.abs(c-3),pn);
+						GAMESTATE:ApplyGameCommand('mod,*-1 '..-300*math.cos(beat+o/1.25) ..'% movez'..math.abs(c-3),pn);
+					end
+				end
+			end)
+			
+			me(18.5,1.5,-180,0,'rotationy','len',outSine)
+			me(18.5,1.5,314,0,'confusionyoffset','len',outSine)
+			me(18.5,1.5,-40,0,'rotationx','len',outSine)
+			me(18.5,1.5,-30,0,'rotationz','len',outSine)
+			
+			for i = 20,28,4 do
+				local ax = 'z'
+				if i >= 20 then ax = 'y' end
+				me(i,0.75,360,288,'rotationy','len',outSine)
+				me(i,0.75,-628,-502,'confusion'..ax..'offset','len',outSine)
+				me(i+0.75,0.75,288,216,'rotationy','len',outSine)
+				me(i+0.75,0.75,-502,-377,'confusion'..ax..'offset','len',outSine)
+				me(i+1.5,0.75,216,144,'rotationy','len',outSine)
+				me(i+1.5,0.75,-377,-251,'confusion'..ax..'offset','len',outSine)
+				me(i+2.25,0.75,144,72,'rotationy','len',outSine)
+				me(i+2.25,0.75,-251,-125,'confusion'..ax..'offset','len',outSine)
+				me(i+3,1,72,0,'rotationy','len',outSine)
+				me(i+3,1,-125,0,'confusion'..ax..'offset','len',outSine)
+			end
+			
+			me(32,3.5,-360,0,'rotationy','len',outSine)
+			me(32,3.5,628,0,'confusionyoffset','len',outSine)
+			mb(32,3.5,0,20,'rotationz','Sine')
+			
+			for i = 20,34 do --how do i code
+				me(i,1,50,0,'movey0','len',outSine,1)
+				me(i,1,50,0,'movey2','len',outSine,1)
+				me(i,1,50,0,'movey1','len',outSine,2)
+				me(i,1,50,0,'movey3','len',outSine,2)
+				
+				me(i,1,50,0,'confusionzoffset0','len',outSine,1)
+				me(i,1,50,0,'confusionzoffset2','len',outSine,1)
+				me(i,1,50,0,'confusionzoffset1','len',outSine,2)
+				me(i,1,50,0,'confusionzoffset3','len',outSine,2)
+				
+				me(i+0.5,1,50,0,'movey0','len',outSine,2)
+				me(i+0.5,1,50,0,'movey2','len',outSine,2)
+				me(i+0.5,1,50,0,'movey1','len',outSine,1)
+				me(i+0.5,1,50,0,'movey3','len',outSine,1)
+				
+				me(i+0.5,1,-50,0,'confusionzoffset0','len',outSine,2)
+				me(i+0.5,1,-50,0,'confusionzoffset2','len',outSine,2)
+				me(i+0.5,1,-50,0,'confusionzoffset1','len',outSine,1)
+				me(i+0.5,1,-50,0,'confusionzoffset3','len',outSine,1)				
+			end
+			
+			for i,v in ipairs(menis2) do
+				me(v[1],1,-300,0,'tinyx'..v[2],'len',outSine)
+				me(v[1],1,-150,0,'tinyy'..v[2],'len',outSine)
+				me(v[1],1,50,0,'noteskew'..v[2],'len',outSine)
+				
+				--[[if v[2] % 1 == 1 then
+					me(v[1],1,-100,0,'movey','len',outBack,1)
+				else
+					me(v[1],1,-100,0,'movey','len',outBack,2)
+				end]]				
+				
+				me(v[1],1,80,100,'zoom','len',outCirc)
+				me(v[1],1,1.1,1,function(a)
+					if bg_default then
+						bg_default:zoom(a)
+					end
+				end,'len',outCirc)
+			end
+			
+			for i,v in ipairs(menis) do
+				local m = randomXD(v[1])
+				--me(v[1],1,-314,0,'confusionxoffset'..v[2],'len',outBack)
+				--me(v[1],1,314,0,'confusionyoffset'..v[2],'len',outBack)
+				--me(v[1],1,50,0,'noteskew'..v[2],'len',outBack)
+				--me(v[1],1,620*m2,0,'confusionyoffset'..v[2],'len',inOutBack)
+				me(v[1],1,-300,0,'tinyz'..v[2],'len',outBack)
+				me(v[1],1,-200,0,'tiny','len',outBack)
+			end
+			
+			mb(35,0.5,0,50,'tinyy','Cubic')
+			mb(35,0.5,0,-300,'tinyx','Cubic')
+			me(35,0.5,0,30,'reverse','len',outCubic)
+			
+			mb(35.5,0.5,0,-200,'tinyy','Cubic')
+			mb(35.5,0.5,0,50,'tinyx','Cubic')
+			me(35.5,0.5,30,-30,'reverse','len',outBack)
+			me(36,0.5,-30,0,'reverse','len',outBack)
+			
+			me(35,0.5,100,0,'zoom','len',inCubic)
+			me(35.5,0.5,0,100,'zoom','len',outCubic)			
+			
+			for c = 0,3 do
+				me(35.5,0.5,0,0,'movex'..c,'len',linear)
+				me(35.5,0.5,0,0,'movez'..c,'len',linear)
+			end
+			me(35.5,0.5,0,0,'flip','len',linear)
+			
+			m(36,43.5,'*-1 100% dark,*-1 100% hidenoteflashes','end',1)
+			m(36,43.5,'*-1 100% stealth','end',2)
+			for i = 37,42 do
+				me(i,0.5,0,150,'centered2','len',linear,1)
+				me(i+0.5,0.5,0,150,'centered2','len',linear,1)
+			end		
+			me(43,0.5,0,150,'centered2','len',linear,1)
+			
+			--i have absorbed teri
+			for i = 37,43,0.5 do
+				me(i,0.5,1.3-(i-36)/20,1-(i-36)/20,function(a)
+					if bg_default then
+						bg_default:zoom(a)
+					end
+				end,'len',outCirc)
+				
+				local ftr_rot = (i-37)/15
+				local ftr_end = (i-36)/15
+				me(i,0.5,360/10*ftr_rot,360/10*ftr_end,function(a)
+					if bg_default then
+						bg_default:rotationz(a)
+					end
+				end,'len',outCirc)
+			end
+			
+			me(43.5,0.5,18,0,function(a)
+				if bg_default then
+					bg_default:rotationz(a)
+				end
+			end,'len',outCirc)
+			me(43.5,0.5,0.625,1,function(a)
+				if bg_default then
+					bg_default:zoom(a)
+				end
+			end,'len',outElastic,nil,nil,0.5)
+			m(36,43,'*-1 150% drawsize','end')
+			me(36,0.5,0,100,'flip','len',outBack)
+			me(36,0.5,-300,0,'tinyx','len',outBack)
+			me(36.5,0.5,100,0,'flip','len',outBack)
+			me(36.5,0.5,-300,0,'tinyx','len',outBack)
+			me(36.5,0.5,0,100,'invert','len',outBack)
+			
+			me(37,6,0,20,'rotationx','len',linear)
+			for i = 37,43 do
+				me(i,0.5,50,100,'invert','len',outBack)
+				me(i,0.5,-500,0,'tinyx','len',outBack)
+				me(i,0.5,50,0,'rotationy','len',outBack)
+				
+				me(i+0.5,0.5,50,0,'invert','len',outBack)
+				me(i+0.5,0.5,-500,0,'tinyx','len',outBack)
+				me(i+0.5,0.5,-50,0,'rotationy','len',outBack)
+				
+				if ftr_slumpage then					
+					me(i,0.5,0,-157,'confusionzoffset0','len',outBack)
+					me(i,0.5,0,157,'confusionzoffset1','len',outBack)
+					me(i,0.5,0,157,'confusionzoffset2','len',outBack)
+					me(i,0.5,0,-157,'confusionzoffset3','len',outBack)
+					me(i,0.5,0,50,'stealth','len',outCirc,1)
+					
+					me(i+0.5,0.5,-157,0,'confusionzoffset0','len',outBack)
+					me(i+0.5,0.5,157,0,'confusionzoffset1','len',outBack)
+					me(i+0.5,0.5,157,0,'confusionzoffset2','len',outBack)
+					me(i+0.5,0.5,-157,0,'confusionzoffset3','len',outBack)
+					me(i+0.5,0.5,50,0,'stealth','len',outCirc,1)
+				else
+					me(i,0.5,-314/4,0,'confusionzoffset','len',outBack)
+					me(i+0.5,0.5,314/4,0,'confusionzoffset','len',outBack)
+				end
+			end
+			for i = 37,43,0.5 do
+				local h = (i-37)
+				me(i,0.5,-h*40,-h*40,'movey','len',linear)
+			end
+			
+			me(43.5,1,0,0,'dark','len',linear,1)
+			me(43.5,1,0,0,'hidenoteflashes','len',linear,1)
+			me(43.5,1,0,0,'stealth','len',linear,2)
+			me(43.5,1,0,0,'centered2','len',linear,1)
+			
+			me(43.5,0.75,-(43-37)*40,0,'movey','len',outBack,nil,nil,3)
+			me(43.5,0.5,100,0,'invert','len',outBack)
+			me(43.5,0.5,0,100,'flip','len',outBack)
+			mb(43.5,0.5,0,50,'tinyy','Cubic')
+			mb(43.5,0.5,0,-300,'tinyx','Cubic')			
+			
+			--REECE'S REECE'S 
+			--this spellcard is not applicable if you are ky_dash, cyber, teri, lirodon, yasmyn, or condortalon
+			for i = 44,50 do
+				me(i,0.5,50,100,'flip','len',outBack)
+				me(i,0.5,-800,0,'tinyx','len',outCubic)
+				me(i,0.5,-300,0,'tinyy','len',outCubic)
+				me(i,0.5,314/4,0,'confusionzoffset','len',outBack)
+				me(i,0.5,-60,0,'noteskew','len',outBack)
+				
+				me(i+0.5,0.5,50,0,'flip','len',outBack)
+				me(i+0.5,0.5,-800,0,'tinyx','len',outCubic)
+				me(i+0.5,0.5,-300,0,'tinyy','len',outCubic)
+				me(i+0.5,0.5,-314/4,0,'confusionzoffset','len',outBack)				
+				me(i+0.5,0.5,60,0,'noteskew','len',outBack)		
+
+				
+				me(i,1,1.5,1,function(a)
+					if bg_default then
+						bg_default:zoom(a)
+					end
+				end,'len',outCirc)
+			end
+			for i = 44,47.5,0.5 do
+				me(i,0.5,100,0,'brake','len',outSine)
+			end
+			
+			me(44,51,0,-40,'rotationx','end',inSine)
+			me(44,51,100,70,'zoom','end',inSine)
+			me(44,51,0,-100,'movey','end',inSine)
+			
+			m(44,51,'*-1 1000% bumpyperiod,*-1 200% drawsize,*-1 500% drunkzperiod,*-1 500% drunkperiod,*-1 250% drunkspacing','end')
+			me(44,48,0,500,'bumpy','end',inSine,1)
+			me(44,48,0,-500,'bumpy','end',inSine,2)
+			
+			me(48,3,0,50,'drunkz','len',outSine,1)
+			me(48,3,0,-50,'drunk','len',outSine,1)
+			me(48,3,0,-50,'drunkz','len',outSine,2)
+			me(48,3,0,50,'drunk','len',outSine,2)
+			me(48,3,500,0,'bumpy','len',outSine,1)
+			me(48,3,-500,0,'bumpy','len',outSine,2)
+			me(48,3,0,2000,'gayholds','len',outSine)
+			
+			me(51,1,50,0,'drunkz','len',outExpo,1)
+			me(51,1,-50,0,'drunk','len',outExpo,1)
+			me(51,1,-50,0,'drunkz','len',outExpo,2)
+			me(51,1,50,0,'drunk','len',outExpo,2)
+			me(51,1,2000,0,'gayholds','len',outExpo)
+			
+			me(51,1,-40,40,'rotationx','len',outBack)
+			me(51,1,70,100,'zoom','len',outExpo)
+			me(51,1,-100,0,'movey','len',outBack)
+			
+			me(51,1,50,100,'flip','len',outExpo)
+			me(51,1,-200,0,'tinyx','len',outExpo)
+			mb(51,1.25,100,200,'zoomx','Expo')
+			mb(51,1.25,0,20,'dizzy','Expo')
+			
+			me(52,1,40,0,'rotationx','len',outBack)
+			me(52,1,100,0,'flip','len',outBack)
+			me(52,1,-200,0,'tinyx','len',outBack)
+			
+			function ftr_vibro(beat,magnitude)
+				me(beat,1,magnitude,0,function(a)
+					for pn = 1,2 do
+						local b = Plr(pn)
+						if b then
+							b:vibrate(1)
+							b:effectmagnitude(a,a/2,0)
+						end
+					end
+				end,'len',outSine)
+			end
+			local ftr_lin = { --table
+				{52,50},
+				{56,-50},
+				{64,-50},
+				{68,75},
+				{72,-75},
+				{76,50},
+				{80,-50},
+			}
+			for i,v in ipairs(ftr_lin) do
+				ftr_vibro(v[1],v[2])
+			end
+			me(48,3,0,-30,function(a)
+				if bg_default then
+					bg_default:rotationz(a)
+				end
+			end,'len',inSine)
+			me(48,3,1,0.5,function(a)
+				if bg_default then
+					bg_default:zoom(a)
+				end
+			end,'len',inSine)
+			me(48,3,0,70,function(a)
+				if bg_default then
+					bg_default:vibrate(1)
+					bg_default:effectmagnitude(a,a,a)
+				end
+			end,'len',inSine)
+			me(51,1,-30,0,function(a)				
+				if bg_default then
+					bg_default:rotationz(a)
+					bg_default:stopeffect()
+				end
+			end,'len',outCirc)
+			me(51,1,0.5,1,function(a)				
+				if bg_default then
+					bg_default:zoom(a)
+				end
+			end,'len',outCirc)
+			
+			--YEAAAAAAH CHOCOLATE FLAVOR
+			if ftr_slumpage then
+				for i = 52,58,2 do
+					me(i,1,0,100,'flip','len',outExpo)
+					me(i,1,-300,0,'tinyx','len',outExpo)
+					me(i+1,1,100,0,'flip','len',outExpo)
+					me(i+1,1,-300,0,'tinyx','len',outExpo)
+				end
+				for i = 62,66,2 do
+					me(i,1,0,100,'flip','len',outExpo)
+					me(i,1,-300,0,'tinyx','len',outExpo)
+					me(i+1,1,100,0,'flip','len',outExpo)
+					me(i+1,1,-300,0,'tinyx','len',outExpo)
+				end
+				for i = 76,82,2 do
+					me(i,1,0,100,'flip','len',outExpo)
+					me(i,1,-300,0,'tinyx','len',outExpo)
+					me(i+1,1,100,0,'flip','len',outExpo)
+					me(i+1,1,-300,0,'tinyx','len',outExpo)
+				end
+			end
+			mm(52,function() if bg_default then bg_default:diffusealpha(1) end end,true)
+			m(52.5,84,'*-1 99.9% reverse','end',2)
+			m(52.5,84,'*-1 -98% drawsizeback, *-1 300 zoomz','end')
+			for c = 0,3 do
+				local d = math.abs(c-3)
+				local e = c/4
+				me(52.5+e,52.5+e+0.5,0,-1000,'movey'..c,'end',outQuad,1,56.5)
+				me(52.5+e,52.5+e+0.5,1000,0,'movey'..c,'end',outQuad,2,56.5)
+				me(52.5+e,52.5+e+0.5,-200,0,'tinyy'..c,'end',outQuad)				
+				
+				me(80.5+e,80.5+e+0.5,-1000,0,'movey'..d,'end',outQuad,1,84)
+				me(80.5+e,80.5+e+0.5,0,1000,'movey'..d,'end',outQuad,2,84)
+				me(80.5+e,80.5+e+0.5,-200,0,'tinyy'..d,'end',outQuad)
+				
+				me(56.5+e,56.5+e+0.5,-1000,0,'movey'..d,'end',outQuad,1,60.75)
+				me(56.5+e,56.5+e+0.5,0,1000,'movey'..d,'end',outQuad,2,60.75)
+				me(56.5+e,56.5+e+0.5,-200,0,'tinyy'..d,'end',outQuad)
+				
+				me(64.5+e,64.5+e+0.5,-1000,0,'movey'..d,'end',outQuad,1,76.75)
+				me(64.5+e,64.5+e+0.5,0,1000,'movey'..d,'end',outQuad,2,76.75)
+				me(64.5+e,64.5+e+0.5,-200,0,'tinyy'..d,'end',outQuad)					
+				
+				me(84,1,0,0,'movey'..c,'len',linear)
+				me(84,1,0,0,'reverse','len',linear)
+			end		
+			
+			--fuck
+			me(60.75,61.25,0,-1000,'movey1','end',outQuad,1,64.5)
+			me(61,61.5,0,-1000,'movey0','end',outQuad,1,64.5)
+			me(61,61.5,0,-1000,'movey3','end',outQuad,1,64.5)
+			me(61.25,61.75,0,-1000,'movey2','end',outQuad,1,64.5)
+			
+			me(60.75,61.25,1000,0,'movey1','end',outQuad,2,64.5)
+			me(61,61.5,1000,0,'movey0','end',outQuad,2,64.5)
+			me(61,61.5,1000,0,'movey3','end',outQuad,2,64.5)
+			me(61.25,61.25,1000,0,'movey2','end',outQuad,2,64.5)			
+			
+			me(60.75,61.75,-200,0,'tinyy1','end',outQuad)
+			me(61,61.5,-200,0,'tinyy0','end',outQuad)
+			me(61,61.5,-200,0,'tinyy3','end',outQuad)
+			me(61.25,61.75,-200,0,'tinyy2','end',outQuad)			
+			
+			me(76.75,77.25,0,-1000,'movey1','end',outQuad,1,80.5)
+			me(77,77.5,0,-1000,'movey0','end',outQuad,1,80.5)
+			me(77,77.5,0,-1000,'movey3','end',outQuad,1,80.5)
+			me(77.25,77.75,0,-1000,'movey2','end',outQuad,1,80.5)
+			
+			me(76.75,77.25,1000,0,'movey1','end',outQuad,2,80.5)
+			me(77,77.5,1000,0,'movey0','end',outQuad,2,80.5)
+			me(77,77.5,1000,0,'movey3','end',outQuad,2,80.5)
+			me(77.25,77.75,1000,0,'movey2','end',outQuad,2,80.5)			
+			
+			me(60.75,61.75,-200,0,'tinyy1','end',outQuad)
+			me(61,62,-200,0,'tinyy0','end',outQuad)
+			me(61,62,-200,0,'tinyy3','end',outQuad)
+			me(61.25,62.25,-200,0,'tinyy2','end',outQuad)
+			--end fuck
+			
+			for i,v in ipairs(rats) do
+				for c = 0,3 do
+					if v[2] == 0 then
+						me(v[1],2.75,0,0,'movey'..c,'len',linear)
+						me(v[1],2.75,99.9,99.9,'reverse','len',linear)
+						hidecol(v[1],2.75,{0,2},1,1)
+						hidecol(v[1],2.75,{1,3},1,2)
+						hidecol(v[1]+2.75,1,{0,2},0,1)
+						hidecol(v[1]+2.75,1,{1,3},0,2)						
+					else
+						me(v[1],2.75,0,0,'movey'..c,'len',linear)
+						me(v[1],2.75,0,0,'reverse','len',linear)
+						hidecol(v[1],2.75,{0,2},1,2)
+						hidecol(v[1],2.75,{1,3},1,1)
+						hidecol(v[1]+2.75,1,{0,2},0,2)
+						hidecol(v[1]+2.75,1,{1,3},0,1)
+					end
+				end
+				local m = 1
+				if v[2] == 1 then m = -1 end
+				
+				me(v[1],0.5,0,70*m,'skewx','len',outElastic,1,0.5)
+				me(v[1],0.5,0,-50*m,'noteskewx','len',outElastic,1,0.5)
+						
+				me(v[1]+0.5,0.5,0,-70*m,'skewx','len',outElastic,2)
+				me(v[1]+0.5,0.5,0,50*m,'noteskewx','len',outElastic,2)
+						
+				me(v[1]+1,0.5,70*m,100*m,'skewx','len',outElastic,1,0.25)
+				me(v[1]+1,0.5,-50*m,-70*m,'noteskewx','len',outElastic,1,0.25)
+				me(v[1]+1,0.5,-70*m,-100*m,'skewx','len',outElastic,2,0.25)
+				me(v[1]+1,0.5,50*m,70*m,'noteskewx','len',outElastic,2,0.25)
+				
+				me(v[1]+1.75,0.5,100*m,0,'skewx','len',outElastic,1,0.25)
+				me(v[1]+1.75,0.5,-70*m,0,'noteskewx','len',outElastic,1,0.25)
+				me(v[1]+1.75,0.5,-100*m,0,'skewx','len',outElastic,2,0.25)
+				me(v[1]+1.75,0.5,70*m,0,'noteskewx','len',outElastic,2,0.25)
+				
+				me(v[1],0.5,0,15,'rotationx','len',outBack)
+				me(v[1]+0.5,0.5,15,30,'rotationx','len',outBack)
+				me(v[1]+1,0.5,30,45,'rotationx','len',outBack,nil,0.75)
+				me(v[1]+2.25,0.5,45,0,'rotationx','len',outElastic)
+				
+				if v[1] >= 61 then					
+					me(v[1],0.5,100,110,'zoomx','len',outBack)
+					me(v[1]+0.5,0.5,100,120,'zoomx','len',outBack)
+					me(v[1]+1,0.5,100,130,'zoomx','len',outBack,nil,0.75)
+					me(v[1]+2.25,0.5,130,100,'zoomx','len',outElastic)
+					
+					me(v[1],0.5,0,40*m,'dizzy','len',outCirc)
+					me(v[1]+2.25,0.5,40*m,0,'dizzy','len',outCirc)
+				end
+				if v[1] >= 76 then					
+					me(v[1],0.5,0,-10*m,'rotationy','len',outBack)
+					me(v[1]+0.5,0.5,-10*m,-20*m,'rotationy','len',outBack)
+					me(v[1]+1,0.5,-20*m,-30*m,'rotationy','len',outBack,nil,0.75)
+					me(v[1]+2.25,0.5,-30*m,0,'rotationy','len',outElastic)
+				end
+			end
+			
+			me(55,1,-500,0,'tiny','len',outCirc)
+			
+			me(60,0.75,0,120,'flip','len',outCirc)
+			me(60,0.75,-300,0,'tinyx','len',outCirc)
+			me(60.75,0.5,120,0,'flip','len',outCirc)
+			me(60.75,0.5,-300,0,'tinyx','len',outCirc)
+			
+			me(63,1,330,0,'rotationy','len',outCubic)
+			me(63,1,-575,0,'confusionyoffset','len',outCubic)
+			me(79,1,-390,0,'rotationy','len',outCubic)
+			me(79,1,680,0,'confusionyoffset','len',outCubic)
+			
+			for c = 0,3 do
+				me(69+(c/4),69+(c/4)+0.5,0,99.99,'reverse'..c,'end',outCirc,nil,71) --nice
+				me(69+(c/4),0.5,-300,0,'tinyy'..c,'len',outCirc)
+				me(70+(c/4),70+(c/4)+0.5,99.99,0,'reverse'..c,'end',outCirc,nil,71)
+				me(70+(c/4),0.5,-300,0,'tinyy'..c,'len',outCirc)				
+			end
+			
+			mb(71,0.5,0,300,'tipsy','Circ')
+			mb(71.5,0.5,0,-500,'tipsy','Circ')
+			
+			mb(72.5,0.5,0,30,'invert','Circ')
+			mb(73,0.5,0,-30,'invert','Circ')
+			mb(73.5,0.5,0,30,'invert','Circ')
+			
+			for c = 0,3 do
+				me(74+(c/4),74+(c/4)+0.5,0,99.99,'reverse'..c,'end',outCirc,nil,76)
+				me(74+(c/4),0.5,-300,0,'tinyy'..c,'len',outCirc)
+				me(75+(c/4),75+(c/4)+0.5,99.99,0,'reverse'..c,'end',outCirc,nil,76)
+				me(75+(c/4),0.5,-300,0,'tinyy'..c,'len',outCirc)				
+			end
+			
+			mb(74,2,0,-40,'rotationx','Circ')
+			hidecol(74,2,{0,1,2,3},1,2)
+			me(74,1,360,180,'rotationz','len',inOutCirc)
+			me(74,1,0,30,'skewx','len',inOutCirc)
+			me(74,1,0,40,'stealth','len',outCirc)
+			
+			me(75,1,180,0,'rotationz','len',inOutCirc)
+			me(75,1,0,30,'skewx','len',inOutCirc)
+			me(75,1,40,0,'stealth','len',outCirc)
+			hidecol(76,1,{0,1,2,3},0,2)
+			
+			for i,v in ipairs(uhhhh_netherite) do
+				local m = 1
+				if v[2] == 1 then m = -1 end
+				me(v[1],1,70*m,0,function(a) if bg_default then bg_default:vibrate(1) bg_default:effectmagnitude(a,a,a) end end,'len',outSine)
+				me(v[1],1,10*m,0,function(a) if bg_default then bg_default:rotationz(a) end end,'len',outSine)
+				mm(v[1],function() if bg_default then bg_default:stopeffect() end end,false)
+			end
+			
+			--all this code for one hold :deadfromlaughing:
+			m(72,2,'*-1 -100% spiralholds,','len')
+			m(72,2,'*-1 800% gayholds','len')
+			me(72,0.5,0,100,'drunk','len',outInSine)
+			me(72,0.5,0,15000,'drunkspeed','len',outInSine)
+			me(72,0.5,0,50,'drunkperiod','len',outInSine)
+			me(72.5,0.5,100,0,'drunk','len',outInSine)
+			me(72.5,0.5,15000,0,'drunkspeed','len',outInSine)
+			me(72.5,0.5,50,0,'drunkperiod','len',outInSine)
+			mb(72.5,1,0,100,'longholds','Cubic')			
+			
+			--redzone shits
+			ftr_flick = 1
+			mpf(84,90,function(beat,deltatime)
+				local rev = 0
+				if ftr_flick == -1 then rev = 99.99 end
+				GAMESTATE:ApplyModifiers('*-1 '..rev..' reverse')
+			end)	
+			m(84,36,'*-1 50% drawsize,*-1 -98% drawsizeback, *-1 halgun','len')
+			m(104,108,'*-1 150 drawsize','end')
+			me(84,1,0,50,'flip','len',outElastic,nil,36)
+			me(84,1,0,100,'centered','len',outElastic,nil,36)
+			me(84,6,720,0,'rotationz','len',inCubic,1)
+			me(84,6,720+90,90,'rotationz','len',inCubic,2)
+			me(84,6,100,0,'zoom','len',inCubic)
+			me(84,6,1,0,function(a) if bg_default then bg_default:zoom(a) end end,'len',inCirc)
+			me(84,6,0,-70,function(a) if bg_default then bg_default:rotationz(a) end end,'len',inCirc)
+			mm(90,function() if bg_default then bg_default:zoom(1) bg_default:rotationz(0) bg_default:diffusealpha(0) end end,true)
+			
+			for i = 91,92,0.25 do
+				hidecol(i,0.125,{0,1,2,3},1)
+				hidecol(i+0.125,0.125,{0,1,2,3},0)
+			end
+			
+			function shit_rotate(beat,mult,var)
+				for pn = 1,2 do
+					local ftr_rot = 0
+					local ftr_con = 0
+					if pn == 2 then 
+						ftr_rot = -90
+						ftr_con = 157
+					end
+					if var == 1 then
+						for i = beat,beat+1 do --this is a fucking mess but i'm in too deep
+							local m2 = i-beat+1
+							me(i,0.25,ftr_rot+(360*mult)/m2,ftr_rot+(315*mult)/m2,'rotationz','len',outCirc,pn)
+							me(i+0.25,0.25,ftr_rot+(315*mult)/m2,ftr_rot+(270*mult)/m2,'rotationz','len',outCirc,pn)
+							me(i+0.5,0.25,ftr_rot+(270*mult)/m2,ftr_rot+(225*mult)/m2,'rotationz','len',outCirc,pn)
+							me(i+0.75,0.25,ftr_rot+(225*mult)/m2,ftr_rot+(180*mult)/m2,'rotationz','len',outCirc,pn,0.25)
+							
+							me(i,0.25,ftr_con+(628*-mult)/m2,ftr_con+(549*-mult)/m2,'confusionzoffset','len',outCirc,pn)
+							me(i+0.25,0.25,ftr_con+(549*-mult)/m2,ftr_con+(471*-mult)/m2,'confusionzoffset','len',outCirc,pn)
+							me(i+0.5,0.25,ftr_con+(471*-mult)/m2,ftr_con+(392*-mult)/m2,'confusionzoffset','len',outCirc,pn)
+							me(i+0.75,0.25,ftr_con+(392*-mult)/m2,ftr_con+(314*-mult)/m2,'confusionzoffset','len',outCirc,pn,0.25)
+						end
+					else
+						me(beat,1,ftr_rot+(360*mult),ftr_rot+(180*mult),'rotationz','len',outCirc,pn)
+						me(beat+1,1,ftr_rot+(180*mult),ftr_rot+0,'rotationz','len',outCirc,pn)
+						
+						me(beat,1,ftr_con+(-628*mult),ftr_con+(-314*mult),'confusionzoffset','len',outCirc,pn)
+						me(beat+1,1,ftr_con+(-314*mult),ftr_con+0,'confusionzoffset','len',outCirc,pn)
+					end
+				end
+			end
+			
+			for i,v in ipairs(bitch_ass_mic) do
+				local m = 1
+				if v[2] % 2 == 1 then m = -1 end
+				
+				local t = 1
+				if v[2] >= 2 then t = 0 end
+				shit_rotate(v[1],m,t)
+			end
+			
+			me(90,2,0,80,'zoom','len',outCubic,nil,28)
+			hidecol(90,31,{0,3},1,1)
+			hidecol(90,31,{1,2},1,2)
+			me(90,1,0,0,'reverse','len',linear)
+			me(90,1,-90,-90,'rotationz','len',linear,2)
+			m(90,31,'*-1 -90% rotationz,*-1 157% confusionzoffset,*-1 99.9% reverse0','len',2)
+			m(90,31,'*-1 99.9% reverse2','len',1)
+			--m(90,30,'*-1 75 centered2','len')
+			m(90,31,'*-1 C270, *-1 1 bumpy, *-1 200 beatmult, *-1 300 zoomz','len')
+			
+			mm(90,function()
+				for pn = 1,2 do
+					local a = Plr(pn)
+					if a then
+						a:hidden(1)
+						a:SetDrawByZPosition(true)
+					end									
+					_G['prox'..pn..'a']:hidden(0)
+					_G['prox'..pn..'b']:hidden(0)	
+					_G['prox'..pn..'b']:zoom(0)
+					_G['prox'..pn..'a']:x(SCREEN_CENTER_X)
+					_G['prox'..pn..'b']:x(SCREEN_CENTER_X)
+					_G['prox'..pn..'a']:y(SCREEN_CENTER_Y)
+					_G['prox'..pn..'b']:y(SCREEN_CENTER_Y)
+					_G['prox'..pn..'a']:z(10)
+				end			
+			end,true)
+			
+			for i = 94,102,4 do -- Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing Codeing 
+				me(i-0.25,1,0,1,function(a)	for pn = 1,2 do	_G['prox'..pn..'b']:zoom(a) end	end,'len',outCirc)
+				me(i-0.25,1,2,1,function(a)	for pn = 1,2 do	_G['prox'..pn..'a']:zoom(a)	end	end,'len',outCirc)
+				
+				me(i+0.25,1,0,1,function(a)	for pn = 1,2 do	_G['prox'..pn..'b']:zoom(a)	end	end,'len',outCirc)
+				me(i+0.25,1,2,1,function(a)	for pn = 1,2 do	_G['prox'..pn..'a']:zoom(a)	end	end,'len',outCirc)
+				
+				me(i+1.25,1,0,1,function(a)	for pn = 1,2 do	_G['prox'..pn..'b']:zoom(a)	end	end,'len',outCirc)
+				me(i+1.25,1,2,1,function(a)	for pn = 1,2 do	_G['prox'..pn..'a']:zoom(a)	end	end,'len',outCirc)
+			end
+			
+			me(107,1,1,2,function(a) for pn = 1,2 do _G['prox'..pn..'a']:zoom(a) end end,'len',outCirc)
+			
+			for i = 110,118,4 do -- gniedoC gniedoC gniedoC gniedoC gniedoC gniedoC gniedoC gniedoC gniedoC gniedoC gniedoC gniedoC gniedoC gniedoC gniedoC 
+				me(i-0.25,1,0,1,function(a)	for pn = 1,2 do	_G['prox'..pn..'b']:zoom(a)	end	end,'len',outCirc)
+				me(i-0.25,1,1,2,function(a)	for pn = 1,2 do	_G['prox'..pn..'a']:zoom(a)	end	end,'len',outCirc)
+				
+				me(i+0.25,1,0,1,function(a)	for pn = 1,2 do	_G['prox'..pn..'b']:zoom(a)	end	end,'len',outCirc)
+				me(i+0.25,1,1,2,function(a)	for pn = 1,2 do	_G['prox'..pn..'a']:zoom(a)	end end,'len',outCirc)
+				
+				me(i+1.25,1,0,1,function(a)	for pn = 1,2 do	_G['prox'..pn..'b']:zoom(a)	end end,'len',outCirc)
+				me(i+1.25,1,1,2,function(a)	for pn = 1,2 do	_G['prox'..pn..'a']:zoom(a)	end end,'len',outCirc)
+			end
+			
+			for i = 104,106.5,0.5 do
+				me(i,0.5,80/(i-103),80/(i-102.5),'zoom','len',outBack)
+			end
+			me(106.5,1.5,-628,0,'confusionzoffset','len',outCirc,1)
+			me(106.5,1.5,-628+157,157,'confusionzoffset','len',outCirc,2)
+			me(107,1,20,80,'zoom','len',outCubic)
+			me(107,1,0.5,10,function(a)
+				for pn = 1,2 do
+					_G['prox'..pn..'a']:vibrate(1)
+					_G['prox'..pn..'a']:effectmagnitude(a,a,a)
+					_G['prox'..pn..'b']:vibrate(1)
+					_G['prox'..pn..'b']:effectmagnitude(a,a,a)
+				end
+			end,'len',inSine)
+			mm(108,function()
+				for pn = 1,2 do
+					_G['prox'..pn..'a']:stopeffect()
+					_G['prox'..pn..'b']:stopeffect()
+				end
+			end,true)
+			
+			for i = 92,100,4 do
+				m(i,1.75,'*-1 200 beat','len')
+				m(i+1.75,1,'*-1 0 beat','len')
+			end
+			for i = 108,116,4 do
+				m(i,1.75,'*-1 -200 beat','len')
+				m(i+1.75,1,'*-1 0 beat','len')
+			end
+			
+			for pn = 1,2 do
+				local m = pn*2-3
+				mb(92,4,0,30*m,'rotationy','Sine',pn)
+				mb(92,4,0,30*m,'rotationx','Sine',pn)
+				mb(96,4,0,-30*m,'rotationy','Sine',pn)
+				mb(96,4,0,-30*m,'rotationx','Sine',pn)
+				mb(100,4,0,30*m,'rotationy','Sine',pn)
+				mb(100,4,0,30*m,'rotationx','Sine',pn)
+				
+				mb(108,4,0,30*m,'rotationy','Sine',pn)
+				mb(108,4,0,-30*m,'rotationx','Sine',pn)
+				mb(112,4,0,-30*m,'rotationy','Sine',pn)
+				mb(112,4,0,30*m,'rotationx','Sine',pn)
+				mb(116,4,0,30*m,'rotationy','Sine',pn)
+				mb(116,4,0,-30*m,'rotationx','Sine',pn)				
+			end
+			
+			me(120,1,80,0,'zoom','len',inCubic)
+			me(121,1,0,100,'zoom','len',outCubic)
+			me(121,1,-360,0,'rotationx','len',outCirc)
+			me(121,1,628,0,'confusionxoffset','len',outCirc)
+			mm(121,function()
+				for pn = 1,2 do
+					local a = Plr(pn)
+					if a then
+						a:hidden(0)
+					end									
+					_G['prox'..pn..'a']:hidden(1)
+					_G['prox'..pn..'b']:hidden(1)	
+				end			
+			end,true)
+			me(121,1,0,0,'confusionzoffset','len',linear)
+			me(121,1,0,0,'centered','len',linear)
+			me(121,1,0,0,'flip','len',linear)
+			me(121,1,0,0,'rotationz','len',linear)
+			for c = 0,3 do				
+				me(121,1,0,0,'dark'..c,'len',linear)
+				me(121,1,0,0,'stealth'..c,'len',linear)
+				me(121,1,0,0,'reverse'..c,'len',linear)
+			end
+			
+			--REESE	
+			me(122,2,0,1,function(a) if bg_default then	bg_default:diffusealpha(a) end end,'len',outSine)
+			
+			for i = 124,131 do				
+				me(i,1,1.3,1,function(a) if bg_default then	bg_default:zoom(a) end end,'len',outCirc)
+			end
+			me(132,7,1,0.7,function(a) if bg_default then bg_default:zoom(a) end end,'len',inSine)
+			me(132,7,1,1.4,function(a) if bg_default then bg_default:zoomy(a) end end,'len',inSine)
+			me(132,7,360*6,0,function(a) if bg_default then	bg_default:rotationy(a)	end end,'len',inCirc)
+			me(132,7,0,40,function(a) if bg_default then bg_default:rotationz(a) end end,'len',inSine)
+			
+			me(139,1,0.7,1,function(a) if bg_default then bg_default:zoom(a) end end,'len',outElastic)
+			me(139,1,1.4,1,function(a) if bg_default then bg_default:zoomy(a) end end,'len',outElastic)
+			me(139,1,0,0,function(a) if bg_default then bg_default:rotationy(a)	end	end,'len',linear)
+			me(139,1,40,0,function(a) if bg_default then bg_default:rotationz(a) end end,'len',outCirc)
+			m(122,140,'*-1 300 gayholds, *-1 150 drawsize, *-1 300 zoomz','end')
+			
+			me(122,3,360,0,'rotationx','len',outCirc)
+			me(122,2,150,100,'zoomy','len',outCirc)
+			me(122,3,-628,0,'confusionxoffset','len',outCirc)
+			
+			me(122,2,-628,0,'confusionzoffset0','len',outCirc)
+			me(122,2,-628,0,'confusionzoffset1','len',outCirc)
+			me(122,2,628,0,'confusionzoffset2','len',outCirc)
+			me(122,2,628,0,'confusionzoffset3','len',outCirc)
+			
+			for i = 124,138 do
+				me(i,0.5,0,10*(i/124),'invert','len',outCirc)
+				me(i,0.5,-400*(i/124),0,'tinyx','len',outCubic)
+				me(i,0.5,-100*(i/124),0,'tinyy','len',outCubic)
+				
+				me(i+0.5,0.5,0,-40*(i/124),'invert','len',outCirc)
+				me(i+0.5,0.5,-400*(i/124),0,'tinyx','len',outCubic)				
+				me(i+0.5,0.5,-100*(i/124),0,'tinyy','len',outCubic)			
+
+				me(i,0.5,0,50*(i/123),'dizzy','len',outSine)
+				me(i,0.5,-50*(i/124),0,'noteskew','len',outSine)
+				me(i+0.5,0.5,0,-50*(i/124),'dizzy','len',outSine)	
+				me(i+0.5,0.5,50*(i/124),0,'noteskew','len',outSine)			
+			end
+			for i = 124,135 do			
+				me(i,1,150,100,'zoom','len',outElastic)
+				me(i,1,-2000,0,'tinyz','len',outSine)
+				me(i,1,50,0,'flip','len',outElastic,nil,nil,10)
+				me(i,1,50,0,'centered','len',outElastic,nil,nil,10)
+				me(i,1,-100,0,'movey','len',outCirc)
+				
+				local m = 1
+				if i % 2 == 1 then m = -1 end
+				me(i,1,-40*(i/122)*m,0,'rotationx','len',outSine)
+			end
+			me(124,1,0,0,'confusionxoffset','len',linear)
+			
+			me(132,138.5,628*5,0,'confusionzoffset','end',inCirc)
+			
+			for c = 0,3 do
+				me(132,7,0,-1000,'tiny'..c,'len',inSine)
+				
+				me(139,1,-1000,0,'tiny'..c,'len',outElastic,nil,nil,100,10)
+			end
+			me(132,4,0,30,'reverse','len',inSine)
+			me(136,3,100,500,'zoomy','len',inCirc)
+			me(136,3,30,-50,'reverse','len',inCirc)
+			
+			mpf(136,139,function(beat,deltatime)
+				GAMESTATE:ApplyModifiers('*-1 '..(math.random()*200)..' bumpyx')
+				GAMESTATE:ApplyModifiers('*-1 '..(math.random()*200)..' bumpyxoffset')
+				GAMESTATE:ApplyModifiers('*-1 '..(math.random()*200)..' bumpyxperiod')
+				GAMESTATE:ApplyModifiers('*-1 '..(math.random()*200/5)..' bumpy')
+				GAMESTATE:ApplyModifiers('*-1 '..(math.random()*200)..' bumpyoffset')
+				GAMESTATE:ApplyModifiers('*-1 '..(math.random()*200)..' bumpyperiod')
+			end)
+			
+			me(139,1,0,0,'bumpyx','len',linear)
+			me(139,1,0,0,'confusionzoffset','len',linear)
+			
+			--LET'S DO IT
+			me(139,1,500,100,'zoomy','len',outElastic,nil,nil,50)
+			me(139,1,-50,0,'reverse','len',outElastic,nil,nil,2)
+			m(140,999,'*-1 -300 zoomz, *-1 -98 drawsizeback','end')
+			
+			mm(140,function()
+				if bg_default then
+					bg_default:diffusealpha(1)
+				end
+			end,false)
+			me(140,155,0,200,'wave','end',linear)
+			me(155,0.5,200,0,'wave','len',outCirc)
+			me(160,171,0,200,'wave','end',linear)
+			me(171,0.5,200,0,'wave','len',outCirc)
+			for i = 140,152,4 do
+				local m = 1
+				if i/4 % 2 == 1 then m = -1 end
+				
+				
+				for j = i,i+2 do
+					local ks = 0
+					if j == 154 then ks = 9999 end
+					me(j+0.5,0.5,0,100,'zoom','len',inOutCubic,1)
+					me(j+0.5,0.5,180*m,0,'rotationz','len',inOutCirc,1)
+					me(j+0.5,0.5,100,400,'zoom','len',inOutCubic,2)
+					me(j+0.5,0.5,0,-180*m,'rotationz','len',inOutCirc,2)
+					me(j+0.5,0.5,50,0,'rotationx','len',outCirc)
+					--me(j+0.5,0.5,100,0,'dizzy','len',outCirc)
+					hideease(j+0.5,0.5,{0,1,2,3,4},1,outQuad,1,2)
+					hideease(j+0.5,0.5,{0,1,2,3,4},0,inQuad,1,1)
+					
+					
+					me(j+1+ks,0.5,0,100,'zoom','len',inOutCubic,2)
+					me(j+1+ks,0.5,180*m,0,'rotationz','len',inOutCirc,2)
+					me(j+1+ks,0.5,100,400,'zoom','len',inOutCubic,1)
+					me(j+1+ks,0.5,0,-180*m,'rotationz','len',inOutCirc,1)
+					me(j+1+ks,0.5,-50,0,'rotationx','len',outCirc)
+					--me(j+1+ks,0.5,100,0,'dizzy','len',outCirc)
+					hideease(j+1+ks,0.5,{0,1,2,3,4},1,inQuad,1,1)
+					hideease(j+1+ks,0.5,{0,1,2,3,4},0,outQuad,1,2)
+					
+					if i/4 % 2 == 1 then
+						me(j+0.5,0.5,0,100,'invert','len',outCirc)
+						me(j+0.5,0.25,-300,0,'tinyx','len',outCirc)
+						
+						me(j+1,0.5,100,0,'invert','len',outCirc)
+						me(j+1,0.25,-300,0,'tinyx','len',outCirc)
+						
+						me(j+0.5,0.25,0,-20,function(a)	if bg_default then bg_default:rotationy(a) end end,'len',outCirc) --no func_bounce PepeHands
+						me(j+0.75,0.25,-20,0,function(a) if bg_default then bg_default:rotationy(a)	end	end,'len',inCirc)
+						me(j+1,0.25,0,20,function(a) if bg_default then	bg_default:rotationy(a)	end	end,'len',outCirc)
+						me(j+1.25,0.25,20,0,function(a)	if bg_default then bg_default:rotationy(a) end end,'len',inCirc)
+						
+						me(j+0.5,0.25,scx,scx-200,function(a) if bg_default then bg_default:x(a) end end,'len',outCirc)
+						me(j+0.75,0.25,scx-200,scx,function(a) if bg_default then bg_default:x(a) end end,'len',inCirc)
+						me(j+1,0.25,scx,scx+200,function(a)	if bg_default then bg_default:x(a) end end,'len',outCirc)
+						me(j+1.25,0.25,scx+200,scx,function(a) if bg_default then bg_default:x(a) end end,'len',inCirc)
+						
+						me(j+1.5,0.25,0,0,function(a) if bg_default then bg_default:rotationy(a) end end,'len',linear)
+						me(j+1.5,0.25,scx,scx,function(a) if bg_default then bg_default:x(a) end end,'len',linear)
+						
+						me(j+.5,0.5,0.8,1,function(a) if bg_default then bg_default:zoomx(a) end end,'len',outCirc)	
+						me(j+1,0.5,0.8,1,function(a) if bg_default then	bg_default:zoomx(a)	end end,'len',outCirc)	
+					else
+						me(j+0.5,0.5,0,100,'flip','len',outCirc)
+						me(j+0.5,0.25,-300,0,'tinyx','len',outCirc)
+						
+						me(j+1,0.5,100,0,'flip','len',outCirc)
+						me(j+1,0.25,-300,0,'tinyx','len',outCirc)
+						
+						me(j+0.5,0.25,0,20,function(a) if bg_default then bg_default:rotationx(a) end end,'len',outCirc)
+						me(j+0.75,0.25,20,0,function(a) if bg_default then bg_default:rotationx(a) end end,'len',inCirc)
+						me(j+1,0.25,0,-20,function(a) if bg_default then bg_default:rotationx(a) end end,'len',outCirc)
+						me(j+1.25,0.25,-20,0,function(a) if bg_default then bg_default:rotationx(a)	end end,'len',inCirc)
+						
+						me(j+0.5,0.25,scy,scy-100,function(a) if bg_default then bg_default:y(a) end end,'len',outCirc)
+						me(j+0.75,0.25,scy-100,scy,function(a) if bg_default then bg_default:y(a) end end,'len',inCirc)
+						me(j+1,0.25,scy,scy+100,function(a)	if bg_default then bg_default:y(a) end end,'len',outCirc)
+						me(j+1.25,0.25,scy+100,scy,function(a) if bg_default then bg_default:y(a) end end,'len',inCirc)
+						
+						me(j+1.5,0.25,0,0,function(a) if bg_default then bg_default:rotationx(a) end end,'len',linear)
+						me(j+1.5,0.25,scy,scy,function(a) if bg_default then bg_default:y(a) end end,'len',linear)
+						
+						me(j+.5,0.5,0.8,1,function(a)if bg_default then bg_default:zoomx(a) end end,'len',outCirc)	
+						me(j+1,0.5,0.8,1,function(a) if bg_default then	bg_default:zoomx(a)	end	end,'len',outCirc)	
+					end
+				end
+			end
+			
+			
+			
+			for i,v in ipairs(do_you_fart) do
+				if v[2] == 0 then						
+					me(v[1],0.5,0,100,'tornado','len',outCirc)
+					me(v[1],0.5,0,100,'flip','len',outCirc)
+					me(v[1],0.5,100,200,'zoomx','len',outCirc)
+					me(v[1],0.25,-300,0,'tinyx','len',outCirc)
+					
+					me(v[1]+0.5,1,100,0,'tornado','len',outElastic,nil,100)
+					me(v[1]+0.5,0.5,100,0,'flip','len',outCirc)
+					me(v[1]+0.5,0.5,200,100,'zoomx','len',outCirc)
+					me(v[1]+0.5,0.5,-1000,0,'tiny','len',outCirc)
+				else
+					local ftr_len = 0.5
+					if v[3] == 2 then ftr_len = 1 end
+					local m = 1
+					if v[1] >= 160 then m = -1 end
+					me(v[1],ftr_len,0,-200,'tipsy','len',outCirc)
+					me(v[1],ftr_len,0,-50,'tornado','len',outCirc)
+					me(v[1],ftr_len,0,100,'flip','len',outCirc)
+					me(v[1],ftr_len,0,-70*m,'rotationx','len',outCirc)
+					me(v[1],ftr_len,100,150,'zoomy','len',outCirc)
+					me(v[1],0.25,-300,0,'tinyx','len',outCirc)
+					
+					me(v[1]+ftr_len,1,-200,0,'tipsy','len',outElastic,nil,100)
+					me(v[1]+ftr_len,1,-50,0,'tornado','len',outElastic,nil,100)
+					me(v[1]+ftr_len,0.5,100,0,'flip','len',outCirc)
+					me(v[1]+ftr_len,0.5,-70*m,0,'rotationx','len',outCirc)
+					me(v[1]+ftr_len,0.5,150,100,'zoomy','len',outCirc)
+					me(v[1]+ftr_len,0.5,-1000,0,'tiny','len',outCirc)
+				end
+			end
+			
+			hidecol(156,1,{0,1,2,3},0)
+			me(156,0.5,300,100,'zoom','len',outElastic,nil,10)
+			me(156,1,-1000,0,'tiny','len',outElastic,nil,10)
+			ftr_vibro(156,30)
+			me(156,0.5,0,0,'rotationz','len',linear)
+			me(156,0.5,0,0,'stealth','len',linear)
+			
+			for i = 156.5,158.5,1 do
+				mb(i,0.5,0,-20,'skewx','Circ')
+				mb(i,0.5,0,20,'noteskew','Circ')
+				mb(i+0.5,0.5,0,20,'skewx','Circ')
+				mb(i+0.5,0.5,0,-20,'noteskew','Circ')
+				
+				mb(i,0.5,0,100,'tipsy','Circ')
+				mb(i+0.5,0.5,0,-100,'tipsy','Circ')
+				mb(i,0.5,0,20,'invert','Circ')
+				mb(i+0.5,0.5,0,-20,'invert','Circ')
+				
+				me(i,0.5,50,0,'digital','len',inOutCirc)
+				me(i,0.5,-40,0,'rotationy','len',outCirc)
+				me(i,0.5,-200,0,'tinyx','len',outCirc)
+				me(i+0.5,0.5,-50,0,'digital','len',inOutCirc)
+				me(i+0.5,0.5,40,0,'rotationy','len',outCirc)
+				me(i+0.5,0.5,-200,0,'tinyx','len',outCirc)
+			end
+			
+			for i = 156.5,158.5,0.5 do
+				local cof = 628/5
+				local stp = (i-156.5)*2
+				me(i,0.5,628-cof*stp,628-cof*(stp+1),'confusionzoffset','len',outCirc)
+			end
+			
+			me(158.5,1,-314,0,'confusionxoffset','len',linear)
+			me(158,1,0,-1000,'tiny','len',inCirc)
+			me(159,1,200,100,'zoom','len',outElastic)
+			me(159,1,-1000,0,'tiny','len',outElastic)
+			
+			me(159.5,1,628,0,'confusionzoffset','len',outSine)
+			me(160,0.5,-500,0,'tiny','len',outSine)
+			
+			m(160.5,172,'*-1 99.9 reverse','end',2)
+			for i = 160,168,4 do
+				local m = 1
+				if i/4 % 2 == 1 then m = -1 end
+				
+				
+				for j = i,i+2 do
+					local ks = 0
+					if j == 170 then ks = 9999 end
+					me(j+0.5,0.5,400,100,'zoom','len',inOutCubic,1)
+					me(j+0.5,0.5,-180*m,0,'rotationz','len',inOutCirc,1)
+					me(j+0.5,0.5,100,0,'zoom','len',inOutCubic,2)
+					me(j+0.5,0.5,0,180*m,'rotationz','len',inOutCirc,2)
+					me(j+0.5,0.5,50,0,'rotationx','len',outCirc)
+					--me(j+0.5,0.5,-100,0,'dizzy','len',outCirc)
+					hideease(j+0.5,0.5,{0,1,2,3,4},1,outQuad,1,2)
+					hideease(j+0.5,0.5,{0,1,2,3,4},0,inQuad,1,1)
+					
+					
+					me(j+1+ks,0.5,400,100,'zoom','len',inOutCubic,2)
+					me(j+1+ks,0.5,-180*m,0,'rotationz','len',inOutCirc,2)
+					me(j+1+ks,0.5,100,0,'zoom','len',inOutCubic,1)
+					me(j+1+ks,0.5,0,180*m,'rotationz','len',inOutCirc,1)
+					me(j+1+ks,0.5,-50,0,'rotationx','len',outCirc)
+					--me(j+1+ks,0.5,100,0,'dizzy','len',outCirc)
+					hideease(j+1+ks,0.5,{0,1,2,3,4},1,inQuad,1,1)
+					hideease(j+1+ks,0.5,{0,1,2,3,4},0,outQuad,1,2)
+					
+					if i/4 % 2 == 0 then
+						me(j+0.5,0.5,0,100,'invert','len',outCirc)
+						me(j+0.5,0.25,-300,0,'tinyx','len',outCirc)
+						
+						me(j+1,0.5,100,0,'invert','len',outCirc)
+						me(j+1,0.25,-300,0,'tinyx','len',outCirc)
+						
+						me(j+0.5,0.25,0,-30,function(a)	if bg_default then bg_default:rotationy(a) end end,'len',outCirc) --no func_bounce PepeHands
+						me(j+0.75,0.25,-30,0,function(a) if bg_default then bg_default:rotationy(a)	end	end,'len',inCirc)
+						me(j+1,0.25,0,30,function(a) if bg_default then	bg_default:rotationy(a)	end	end,'len',outCirc)
+						me(j+1.25,0.25,30,0,function(a)	if bg_default then bg_default:rotationy(a) end end,'len',inCirc)
+						
+						me(j+0.5,0.25,scx,scx-200,function(a) if bg_default then bg_default:x(a) end end,'len',outCirc)
+						me(j+0.75,0.25,scx-200,scx,function(a) if bg_default then bg_default:x(a) end end,'len',inCirc)
+						me(j+1,0.25,scx,scx+200,function(a)	if bg_default then bg_default:x(a) end end,'len',outCirc)
+						me(j+1.25,0.25,scx+200,scx,function(a) if bg_default then bg_default:x(a) end end,'len',inCirc)
+						
+						me(j+1.5,0.25,0,0,function(a) if bg_default then bg_default:rotationy(a) end end,'len',linear)
+						me(j+1.5,0.25,scx,scx,function(a) if bg_default then bg_default:x(a) end end,'len',linear)
+						
+						me(j+.5,0.5,0.8,1,function(a) if bg_default then bg_default:zoomx(a) end end,'len',outCirc)	
+						me(j+1,0.5,0.8,1,function(a) if bg_default then	bg_default:zoomx(a)	end end,'len',outCirc)							
+					else
+						me(j+0.5,0.5,0,100,'flip','len',outCirc)
+						me(j+0.5,0.25,-300,0,'tinyx','len',outCirc)
+						
+						me(j+1,0.5,100,0,'flip','len',outCirc)
+						me(j+1,0.25,-300,0,'tinyx','len',outCirc)
+						
+						me(j+0.5,0.25,0,30,function(a) if bg_default then bg_default:rotationx(a) end end,'len',outCirc)
+						me(j+0.75,0.25,30,0,function(a) if bg_default then bg_default:rotationx(a) end end,'len',inCirc)
+						me(j+1,0.25,0,-30,function(a) if bg_default then bg_default:rotationx(a) end end,'len',outCirc)
+						me(j+1.25,0.25,-30,0,function(a) if bg_default then bg_default:rotationx(a)	end end,'len',inCirc)
+						
+						me(j+0.5,0.25,scy,scy-100,function(a) if bg_default then bg_default:y(a) end end,'len',outCirc)
+						me(j+0.75,0.25,scy-100,scy,function(a) if bg_default then bg_default:y(a) end end,'len',inCirc)
+						me(j+1,0.25,scy,scy+100,function(a)	if bg_default then bg_default:y(a) end end,'len',outCirc)
+						me(j+1.25,0.25,scy+100,scy,function(a) if bg_default then bg_default:y(a) end end,'len',inCirc)
+						
+						me(j+1.5,0.25,0,0,function(a) if bg_default then bg_default:rotationx(a) end end,'len',linear)
+						me(j+1.5,0.25,scy,scy,function(a) if bg_default then bg_default:y(a) end end,'len',linear)
+						
+						me(j+.5,0.5,0.8,1,function(a)if bg_default then bg_default:zoomx(a) end end,'len',outCirc)	
+						me(j+1,0.5,0.8,1,function(a) if bg_default then	bg_default:zoomx(a)	end	end,'len',outCirc)	
+					end
+				end
+			end		
+			me(155,1,1,0.5,function(a) if bg_default then bg_default:zoom(a) end end,'len',outSine)
+			me(155,1,scy,scy,function(a) if bg_default then	bg_default:y(a) end	end,'len',outSine)
+			me(156,1,0.5,1,function(a) if bg_default then bg_default:zoom(a) end end,'len',outElastic)
+			
+			me(171,1,1,0.5,function(a) if bg_default then bg_default:zoom(a) end end,'len',outSine)
+			me(171,1,scx,scx,function(a) if bg_default then	bg_default:x(a) end end,'len',outSine)
+			me(171,1,0,0,function(a) if bg_default then	bg_default:rotationy(a)	end	end,'len',outSine)
+			me(172,1,0.5,1,function(a) if bg_default then bg_default:zoom(a) end end,'len',outElastic)
+			
+			hidecol(172,1,{0,1,2,3},0)
+			me(172,0.5,300,100,'zoom','len',outElastic,nil,10)
+			me(172,1,-1000,0,'tiny','len',outElastic,nil,10)
+			ftr_vibro(172,-30)
+			me(172,0.5,0,0,'rotationz','len',linear)
+			me(172,0.5,0,0,'stealth','len',linear)
+			me(172,0.5,0,0,'reverse','len',linear,2)
+			
+			--Wee Woo Wee Woo are Back			
+			me(174,2,scy,800,function(a)
+				if bg_default then
+					bg_default:y(a)
+				end
+			end,'len',inQuad)
+			me(174,1,0,40,function(a)
+				if bg_default then
+					bg_default:rotationz(a)
+				end
+			end,'len',outBack)
+			me(174,2,0,40,function(a)
+				if bg_default then
+					bg_default:rotationx(a)
+				end
+			end,'len',inSine)
+			me(174,1,1.5,0.8,function(a)
+				if bg_default then
+					bg_default:zoom(a)
+				end
+			end,'len',outCirc)
+			local ftr_wheelm = 0
+			for i = 174,186,4 do
+				if (i-2)/4 % 2 == 1 then		
+					mpf(i,i+4,function(beat,deltatime)
+						for pn = 1,2 do
+							local o = ((pn-1)*2)		
+							GAMESTATE:ApplyGameCommand('mod,*-1 '..ftr_wheelm*ftr_flick*math.sin(beat+o/1.25) ..'% movex',pn);
+							GAMESTATE:ApplyGameCommand('mod,*-1 '..-ftr_wheelm*ftr_flick*math.cos(beat+o/1.25) ..'% movez',pn);
+						end
+					end)
+				else
+					mpf(i,i+4,function(beat,deltatime)
+						for pn = 1,2 do
+							local o = ((pn-1)*2)		
+							GAMESTATE:ApplyGameCommand('mod,*-1 '..ftr_wheelm*ftr_flick*math.sin(beat+o/1.25) ..'% movez',pn);
+							GAMESTATE:ApplyGameCommand('mod,*-1 '..-ftr_wheelm*ftr_flick*math.cos(beat+o/1.25) ..'% movex',pn);
+						end
+					end)
+				end
+				me(i,2,0,300,function(a)
+					ftr_wheelm = a
+				end,'len',outCirc)
+				me(i,1,-700,0,'tiny','len',outCirc)
+				me(i+2,2,300,0,function(a)
+					ftr_wheelm = a
+				end,'len',inCirc)
+			end
+			
+			--[[me(186,2,0,300,function(a)
+				ftr_wheelm = a
+			end,'len',outCirc)]]
+			me(188,0.5,300,0,function(a)
+				ftr_wheelm = a
+			end,'len',outCirc,nil,2)
+			
+			for j = 172,184,4 do
+				local m = 1
+				if j/4 % 2 == 1 then m = -1 end
+				ftr_vibro(j,30*m)
+				for i = j+0.5,j+2.5,1 do
+					mb(i,0.5,0,-20,'skewx','Circ')
+					mb(i,0.5,0,20,'noteskew','Circ')
+					mb(i+0.5,0.5,0,20,'skewx','Circ')
+					mb(i+0.5,0.5,0,-20,'noteskew','Circ')
+					
+					mb(i,0.5,0,150,'tipsy','Circ')
+					mb(i+0.5,0.5,0,-150,'tipsy','Circ')
+					mb(i,0.5,0,20,'invert','Circ')
+					mb(i+0.5,0.5,0,-20,'invert','Circ')
+					
+					me(i,0.5,100,0,'digital','len',inOutCirc)
+					mb(i,0.5,0,-20,'rotationy','Circ')
+					me(i,0.5,-200,0,'tinyx','len',outCirc)
+					me(i+0.5,0.5,-100,0,'digital','len',inOutCirc)
+					mb(i+0.5,0.5,0,20,'rotationy','Circ')
+					me(i+0.5,0.5,-200,0,'tinyx','len',outCirc)
+				end
+				mb(j+3,1,0,30*m,'rotationx','Circ')
+				mb(j+3,1,0,200*m,'drunky','Circ')
+				
+				for i = j+0.5,j+2.5,0.5 do
+					if ftr_slumpage then
+						local cof = 628/5
+						local stp = (i-156.5)*2
+						me(i,0.5,(628-cof*stp)*m,(628-cof*(stp+1))*m,'confusionzoffset','len',outCubic)
+					else
+						local n = 1
+						if (i-0.5)*2 % 2 == 1 then n = -1 end
+						mb(i,0.5,0,-50*n,'confusionzoffset','Circ')
+					end
+				end
+			end
+			
+			m(172,188,'*-1 -150 arrowpathdrawsizeback, *-1 300 arrowpathsize','end')
+			for i,v in ipairs(conk1) do
+				me(v[1],1,30,0,'arrowpath'..v[2],'len',outSine)
+			end
+			if ftr_slumpage then
+				me(180,181,0,99.9,'reverse','end',outCirc,nil,188)
+				
+				me(188,1,0,0,'confusionzoffset','len',linear)
+			end
+			
+			--cmon bro... run it back now
+			mm(188,function()
+				if itgroxor then
+					itgin:hidden(0)
+					itgthe:hidden(0)
+					itggroove:hidden(0)
+					itgtwo:hidden(0)
+					itgroxor:hidden(0)
+					itgbg:hidden(0)
+				end
+			end,true)
+			
+			--*hacker voice* im in -mang
+			me(188,0.5,0,1,function(a) if itgin then itgin:zoom(a) end end,'len',outCirc)
+			me(188,0.5,0,randomXD(2)*20,function(a) if itgin then itgin:rotationz(a) end end,'len',outSine)
+			me(188.5,0.5,0,1,function(a) if itgthe then itgthe:zoom(a) end end,'len',outCirc)
+			me(188.5,0.5,0,randomXD(3)*-20,function(a) if itgthe then itgthe:rotationz(a) end end,'len',outSine)
+			me(189,0.5,0,1,function(a) if itggroove then itggroove:zoom(a) end end,'len',outCirc)
+			me(189,0.5,0,randomXD(4)*20,function(a) if itggroove then itggroove:rotationz(a) end end,'len',outSine)
+			me(189.5,0.5,0,1,function(a) if itgtwo then itgtwo:zoom(a) end end,'len',outCirc)
+			me(189.5,0.5,0,randomXD(5)*-20,function(a) if itgtwo then itgtwo:rotationz(a) end end,'len',outSine)
+			me(190,0.5,0,1,function(a) if itgroxor then itgroxor:zoom(a) end end,'len',outCirc)
+			me(190,0.5,0,randomXD(6)*20,function(a) if itgroxor then itgroxor:rotationz(a) end end,'len',outSine)
+			me(190.5,0.5,0,0.75,function(a) if itgbg then itgbg:zoom(a) end end,'len',outCirc)
+			me(190.5,0.5,0,randomXD(7)*-20,function(a) if itgbg then itgbg:rotationz(a) end end,'len',outSine)
+			
+			me(191,1,1.2,0,function(a) if itgin then itgin:zoom(a) end end,'len',inQuad)
+			me(191,1,randomXD(2)*20,randomXD(3)*-20,function(a) if itgin then itgin:rotationz(a) end end,'len',inQuad)
+			me(191,1,1.2,0,function(a) if itgthe then itgthe:zoom(a) end end,'len',inQuad)
+			me(191,1,randomXD(3)*-20,randomXD(4)*20,function(a) if itgthe then itgthe:rotationz(a) end end,'len',inQuad)
+			me(191,1,1.2,0,function(a) if itggroove then itggroove:zoom(a) end end,'len',inQuad)
+			me(191,1,randomXD(4)*20,randomXD(5)*-20,function(a) if itggroove then itggroove:rotationz(a) end end,'len',inQuad)
+			me(191,1,1.4,0,function(a) if itgtwo then itgtwo:zoom(a) end end,'len',inCirc)
+			me(191,1,randomXD(5)*-20,randomXD(6)*20,function(a) if itgtwo then itgtwo:rotationz(a) end end,'len',inExpo)
+			me(191,1,1.2,0,function(a) if itgroxor then itgroxor:zoom(a) end end,'len',inQuad)
+			me(191,1,randomXD(6)*20,randomXD(7)*-20,function(a) if itgroxor then itgroxor:rotationz(a) end end,'len',inQuad)
+			me(191,1,1,0,function(a) if itgbg then itgbg:zoom(a) end end,'len',inQuad)
+			me(191,1,randomXD(7)*-20,randomXD(8)*20,function(a) if itgbg then itgbg:rotationz(a) end end,'len',inQuad)
+			
+			mm(192,function()
+				if itgroxor then
+					itgin:zoom(0)
+					itgthe:zoom(0)
+					itggroove:zoom(0)
+					itgtwo:zoom(0)
+					itgroxor:zoom(0)
+					itgbg:zoom(0)
+				end
+			end,true)
+			for i = 188,190 do
+				mb(i,0.5,0,30,'invert','Circ')
+				mb(i,0.5,0,-200,'tipsy','Circ')
+				mb(i+0.5,0.5,0,-30,'invert','Circ')
+				mb(i+0.5,0.5,0,200,'tipsy','Circ')
+			end
+			me(188,2,0,-200,'tinyx','len',linear)
+			me(188,2,100,120,'zoomx','len',linear)
+			me(191,1,130,0,'zoom','len',inCirc)
+			me(191,204,350,350,'cmod','len',linear)
+			me(190,1,0,120,'flip','len',inCirc)
+			me(191,1,120,50,'flip','len',inCirc,nil,10)
+			me(192,1,0,80,'zoom','len',outCirc,nil,9)
+			
+			mpf(192,202,function(beat,deltatime)
+				for c = 0,3 do
+					for pn = 1,2 do
+						local o = ((pn-1)*4+c)
+						GAMESTATE:ApplyGameCommand('mod,*-1 '..ftr_wheelm*math.sin(beat+o/1.25) ..'% movez'..c,pn);
+						GAMESTATE:ApplyGameCommand('mod,*-1 '..-ftr_wheelm*math.cos(beat+o/1.25) ..'% movex'..c,pn);
+					end
+				end
+			end)
+			for i = 192,200,4 do
+				me(i,1.25,0,250,function(a) ftr_wheelm = a end,'len',outExpo)
+				me(i+3,1,250,0,function(a) ftr_wheelm = a end,'len',inCubic)
+				
+				local m = 1
+				if i/4 % 2 == 1 then m = -1 end
+				ftr_vibro(i,50*m)
+				me(i,1,300*m,-300*m,'zoomz','len',outExpo,nil,3)
+				
+				if i/4 % 2 == 0 then
+					me(i+3,2,0,99.9,'reverse','len',inOutCirc,nil,2)
+				else
+					me(i+3,2,99.9,0,'reverse','len',inOutCirc,nil,2)
+				end
+				
+				
+			end
+			for i = 192,202,2 do
+				for c = 0,3 do
+					local d = 1
+					if c % 2 == 1 then d = -1 end
+					me(i,1,60*d,0,'movey'..c,'len',inSine)
+					me(i+1,1,-60*d,0,'movey'..c,'len',inSine)
+				end
+				me(i,1,20,0,'skewx','len',inSine,1)
+				me(i,1,-20,0,'skewx','len',inSine,2)
+				me(i,1,80,0,'confusionzoffset','len',outCirc)
+				me(i,0.5,-500,0,'tiny','len',outCirc)
+				
+				me(i+1,1,-20,0,'skewx','len',inSine,1)
+				me(i+1,1,20,0,'skewx','len',inSine,2)
+				me(i+1,1,-80,0,'confusionzoffset','len',outCirc)
+				me(i+1,0.5,-500,0,'tiny','len',outCirc)
+			end
+			
+			
+			--OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+			me(202,0.5,0,1,function(a) if itgin then itgin:zoom(a) end end,'len',outCirc)
+			me(202,0.5,0,randomXD(10)*30,function(a) if itgin then itgin:rotationz(a) end end,'len',outSine)
+			me(202,0.5,0,1,function(a) if itgthe then itgthe:zoom(a) end end,'len',outCirc)
+			me(202,0.5,0,randomXD(12)*-30,function(a) if itgthe then itgthe:rotationz(a) end end,'len',outSine)
+			me(203,0.5,0,1,function(a) if itggroove then itggroove:zoom(a) end end,'len',outCirc)
+			me(203,0.5,0,randomXD(14)*30,function(a) if itggroove then itggroove:rotationz(a) end end,'len',outSine)
+			me(203,0.5,0,1,function(a) if itgtwo then itgtwo:zoom(a) end end,'len',outCirc)
+			me(203,0.5,0,randomXD(16)*-30,function(a) if itgtwo then itgtwo:rotationz(a) end end,'len',outSine)
+			
+			me(204,6,1,0,function(a) if itgin then itgin:zoom(a) end end,'len',inSine)
+			me(204,6,randomXD(10)*30,randomXD(12)*-90,function(a) if itgin then itgin:rotationz(a) end end,'len',inSine)
+			me(204,6,0,randomXD(123)*-90,function(a) if itgin then itgin:rotationx(a) end end,'len',inSine)
+			me(204,6,0,randomXD(6567)*-90,function(a) if itgin then itgin:rotationy(a) end end,'len',inSine)
+			me(204,6,1,0,function(a) if itgthe then itgthe:zoom(a) end end,'len',inSine)
+			me(204,6,randomXD(12)*-30,randomXD(14)*90,function(a) if itgthe then itgthe:rotationz(a) end end,'len',inSine)
+			me(204,6,0,randomXD(43)*90,function(a) if itgthe then itgthe:rotationx(a) end end,'len',inSine)
+			me(204,6,0,randomXD(254)*90,function(a) if itgthe then itgthe:rotationy(a) end end,'len',inSine)
+			me(204,6,1,0,function(a) if itggroove then itggroove:zoom(a) end end,'len',inSine)
+			me(204,6,randomXD(14)*30,randomXD(16)*-90,function(a) if itggroove then itggroove:rotationz(a) end end,'len',inSine)
+			me(204,6,0,randomXD(87)*-90,function(a) if itggroove then itggroove:rotationx(a) end end,'len',inSine)
+			me(204,6,0,randomXD(35)*-90,function(a) if itggroove then itggroove:rotationy(a) end end,'len',inSine)
+			me(204,6,1,0,function(a) if itgtwo then itgtwo:zoom(a) end end,'len',inExpo)
+			me(204,6,randomXD(16)*-30,randomXD(18)*90,function(a) if itgtwo then itgtwo:rotationz(a) end end,'len',inSine)			
+			me(204,6,0,randomXD(34)*90,function(a) if itgtwo then itgtwo:rotationx(a) end end,'len',inSine)			
+			me(204,6,0,randomXD(234)*90,function(a) if itgtwo then itgtwo:rotationy(a) end end,'len',inSine)			
+			
+			me(204,6,0,20,function(a) 
+				if itggroove then
+					itgin:vibrate()
+					itgthe:vibrate()
+					itggroove:vibrate()
+					itgtwo:vibrate()
+					
+					itgin:effectmagnitude(a,a,a)
+					itgthe:effectmagnitude(a,a,a)
+					itggroove:effectmagnitude(a,a,a)
+					itgtwo:effectmagnitude(a*1.5,a*1.5,a*1.5)
+				end
+			end,'len',inSine)
+			mm(210,function()
+				if itggroove then
+					itgin:stopeffect()
+					itgthe:stopeffect()
+					itggroove:stopeffect()
+					itgtwo:stopeffect()
+					itgin:zoom(0)
+					itgthe:zoom(0)
+					itggroove:zoom(0)
+					itgtwo:zoom(0)
+					itgtwo:rotationz(0)
+					itgtwo:rotationx(0)
+					itgtwo:rotationy(0)
+					itgtwo:x(scx)
+					itgtwo:y(scy)
+				end
+			end,true)
+			
+			me(212,0.5,0,1.2,function(a) if itgtwo then itgtwo:zoom(a) end end,'len',outBack)
+			me(212,216,-90,90,function(a) if itgtwo then itgtwo:rotationz(a) end end,'end',linear)
+			me(212,216,0,90,function(a) if itgtwo then itgtwo:rotationx(a) end end,'end',inSine)
+			me(212,216,0,-45,function(a) if itgtwo then itgtwo:rotationy(a) end end,'end',inSine)
+			me(215,1,1.2,0,function(a) if itgtwo then itgtwo:zoom(a) end end,'len',inExpo)
+			mm(216,function() if itgtwo then itgtwo:zoom(0) end end,true)
+			for pn = 1,2 do
+				m(204,210,'*-1 200 drawsize','end',pn)
+				me(205,210,99.9,99.9,'reverse','end',linear,pn)
+				me(205,210,-300,-500,'zoomz','end',linear,pn)
+				me(204,210,-360*4,0,'rotationx','end',inCirc,pn)
+				me(204,210,628*4,0,'confusionxoffset','end',inCirc,pn)
+				me(204,210,-360,0,'rotationy','end',inCubic,pn)
+				me(204,210,100,0,'zoom','end',inQuad,pn,212)
+			end
+			mm(190,function()
+				for pn = 1,2 do
+					local a = Plr(pn)
+					if a then
+						a:SetHiddenRegions({{210,215}})
+					end					
+				end
+			end,true)
+			local ftr_penis = 1
+			me(207.75,210,1,6,function(a) ftr_penis = a end,'end',linear)
+			mpf(207.75,210,function(beat,deltatime)
+				for pn = 1,2 do
+					GAMESTATE:ApplyModifiers('*-1 '..(math.random()*100*ftr_penis)..' bumpyx',pn)
+					GAMESTATE:ApplyModifiers('*-1 '..(math.random()*100*ftr_penis)..' bumpyxoffset',pn)
+					GAMESTATE:ApplyModifiers('*-1 '..(math.random()*100*ftr_penis)..' bumpyxperiod',pn)
+					GAMESTATE:ApplyModifiers('*-1 '..(math.random()*100*ftr_penis)..' bumpy',pn)
+					GAMESTATE:ApplyModifiers('*-1 '..(math.random()*100*ftr_penis)..' bumpyoffset',pn)
+					GAMESTATE:ApplyModifiers('*-1 '..(math.random()*100*ftr_penis)..' bumpyperiod',pn)
+				end
+			end)
+			for pn = 1,2 do
+				me(212,1,0,0,'bumpyx','len',linear,pn)
+				me(212,1,0,0,'bumpy','len',linear,pn)
+				me(212,1,100,100,'zoom','len',linear,pn)
+				me(212,1,-1000,0,'tiny','len',outCirc,pn)
+				me(212,1,50,50,'reverse','len',linear,pn,999)
+				me(212,1,50,50,'flip','len',linear,pn,999)
+			end
+			SpawnPlayers(205,3,4,'spawn',true)
+			for pn = 3,4 do
+				m(205,207.75,'*-1 0 zoom','end',pn)
+				m(205,210,'*-1 100 flip','end',pn)
+				m(205,999,'*-1 C300, *-1 1x, *-1 300 zoomz, *-1 200 holdcull','end',pn)
+				me(205,211.5,0,0,'reverse','len',linear,pn)
+				mm(205,function()
+					local a = Plr(pn)
+					if a then
+						a:SetHiddenRegions({{190,210}})
+					end
+				end,true)
+				me(207.75,210,0,100,'zoom','end',outSine,pn)
+				me(210,2,100,0,'flip','len',outElastic,pn)
+				me(210,1,-300,0,'tinyx','len',outElastic,pn)
+				me(210,0.5,-300,0,'tiny','len',outCubic,pn)
+				me(211,1,0,20,'rotationx','len',outSine,pn)
+				me(211,1,628,0,'confusionzoffset','len',inOutCirc,pn)
+				me(211.5,0.5,0,-1000,'tiny','len',inSine,pn)
+				me(211.5,0.5,0,50,'flip','len',inSine,pn,999)
+				me(211.5,0.5,0,50,'reverse','len',inSine,pn,999)
+				me(212,1,-1000,0,'tiny','len',outCirc,pn)
+			end
+			local ftr_wheelm2 = 0
+			mpf(212,216,function(beat,deltatime)
+				for c = 0,3 do
+					for pn = 1,2 do
+						local o = ((pn-1)*4+c)
+						GAMESTATE:ApplyGameCommand('mod,*-1 '..ftr_wheelm*math.sin(beat/2+o/1.25) ..'% movez'..c,pn);
+						GAMESTATE:ApplyGameCommand('mod,*-1 '..-ftr_wheelm*math.cos(beat/2+o/1.25) ..'% movex'..c,pn);
+					end
+				end
+			end)
+			mpf(212,216,function(beat,deltatime)
+				for c = 0,3 do
+					for pn = 3,4 do
+						local o = ((pn-3)*4+c)
+						GAMESTATE:ApplyGameCommand('mod,*-1 '..ftr_wheelm2*math.sin(beat/2+o/1.25) ..'% movex'..c,pn);
+						GAMESTATE:ApplyGameCommand('mod,*-1 '..-ftr_wheelm2*math.cos(beat/2+o/1.25) ..'% movey'..c,pn);
+					end
+				end
+			end)
+			
+			me(212,0.5,0,300,function(a) ftr_wheelm = a end,'len',outExpo)
+			me(212,0.5,0,100,function(a) ftr_wheelm2 = a end,'len',outExpo)
+			
+			for pn = 1,2 do				
+				me(212,3,0,390,'rotationz','len',outCirc,pn,999)
+				me(212,3,0,-680,'confusionzoffset','len',outCirc,pn,999)
+			end
+			for pn = 3,4 do
+				me(212,3,0,-420,'rotationx','len',outCirc,pn,999)
+				me(212,3,0,733,'confusionxoffset','len',outCirc,pn,999)
+			end
+			me(212,1,0,80,'dark','len',outExpo,nil,999)
+			me(215,1,100,0,'zoom','len',inExpo,nil,999)
+---------------------------------------------------------------------------------------
+----------------------Sort the actions table-------------------------------------------
+---------------------------------------------------------------------------------------
+			
+			function modtable_compare(a,b)
+				return a[1] < b[1]
+			end
+			
+			if table.getn(mod_actions) > 1 then
+				table.sort(mod_actions, modtable_compare)
+			end
+			
+			self:queuecommand('Update');
+			
+		end"
+		
+		UpdateCommand="%function(self)
+		
+			ftr_flick = -ftr_flick
+			
+			local beat = GAMESTATE:GetSongBeat()
+			
+			if beat>=0 and not checked then
+					local ThingsToGrab = {'BPMDisplay','LifeFrame','ScoreFrame','Lyrics','SongBackground','SongForeground','Overlay','Underlay'}
+					local ThingsToHide = {'BPMDisplay','LifeFrame','ScoreFrame','Overlay','Underlay'}
+					for pn=1,8 do
+						_G['P'..pn] = SCREENMAN:GetTopScreen():GetChild('PlayerP'..pn) or nil;
+						if _G['P'..pn] then
+							table.insert(mod_plr, _G['P'..pn])
+							_G['jud'..pn]=_G['P'..pn]:GetChild('Judgment');
+							_G['com'..pn]=_G['P'..pn]:GetChild('Combo');
+							_G['jud'..pn]:hidden(1)
+							_G['com'..pn]:hidden(1)
+						end
+						table.insert(ThingsToGrab,'LifeP'..pn); table.insert(ThingsToGrab,'ScoreP'..pn);
+						table.insert(ThingsToHide,'LifeP'..pn); table.insert(ThingsToHide,'ScoreP'..pn);
+					end	
+					for i,v in ipairs(ThingsToGrab) do _G[v] = SCREENMAN:GetTopScreen():GetChild(v) or nil end	
+					for i,v in ipairs(ThingsToHide) do if _G[v] then _G[v]:hidden(1) end end
+				checked = true;
+			end
+			mod_curtime = GAMESTATE:GetSongTime()
+			mod_lasttime = 0
+			local deltatime = mod_curtime - mod_lasttime
+			local deltatime = mod_curtime - mod_lasttime
+			
+			if P1 then P1:NoClearSplines(true) end
+			if P2 then P2:NoClearSplines(true) end
+			
+			--p3/4/etc disabling judgment/combo stuff
+			if P3 and P4 then --add more if necessary
+				for pn=3,8 do --also change this with player count
+					_G['P'..pn] = SCREENMAN:GetTopScreen():GetChild('PlayerP'..pn) or nil;
+					if _G['P'..pn] then
+						table.insert(mod_plr, _G['P'..pn])
+						_G['jud'..pn]=_G['P'..pn]:GetChild('Judgment');
+						_G['com'..pn]=_G['P'..pn]:GetChild('Combo');
+						_G['jud'..pn]:hidden(1)
+						_G['com'..pn]:hidden(1)
+					end
+				end
+			end
+			
+---------------------------------------------------------------------------------------
+----------------------Begin table handlers---------------------------------------------
+---------------------------------------------------------------------------------------
+			
+			disable = false;
+			if disable ~= true and checked then
+				
+				-----------------------
+				-- Player mod resets --
+				-----------------------
+				if beat > mod_firstSeenBeat+0.1 then -- performance coding!! --
+					for i=1,3 do
+						GAMESTATE:ApplyModifiers('clearall',i)
+						if _G['init_modsp'..i] then 
+							GAMESTATE:ApplyModifiers(_G['init_modsp'..i],i)
+						end
+					end
+				end
+				
+				------------------------------------------------------------------------------
+				-- custom mod reader by TaroNuke edited by WinDEU and re-stolen by TaroNuke --
+				------------------------------------------------------------------------------
+				if beat > mod_firstSeenBeat+0.1 then -- performance coding!! --
+					for i,v in pairs(mods) do
+						if v and table.getn(v) > 3 and v[1] and v[2] and v[3] and v[4] then
+							if beat >=v[1] then
+								if (v[4] == 'len' and beat <=v[1]+v[2]) or (v[4] == 'end' and beat <=v[2]) then
+									if table.getn(v) == 5 then
+										GAMESTATE:ApplyModifiers(v[3],v[5]);
+									else
+										GAMESTATE:ApplyModifiers(v[3]);
+									end
+								end
+							end
+						else
+							v[1] = 0;
+							v[2] = 0;
+							v[3] = '';
+							v[4] = 'error';
+							SCREENMAN:SystemMessage('Bad mod in beat-based table (line '..i..')');
+						end
+					end
+				end
+				
+				-----------------------------------------------------------------------------------------------------
+				-- WinDEU's time-based len/end version of the #swag custom mod reader #teamproofofconcept (c) 2015 --
+				-----------------------------------------------------------------------------------------------------
+				if beat > mod_firstSeenBeat+0.1 then -- performance coding!! --
+					for i,v in pairs(mods2) do
+						if v and table.getn(v) > 3 and v[1] and v[2] and v[3] and v[4] then
+							if mod_time >=v[1] then
+								if (v[4] == 'len' and mod_time <=v[1]+v[2]) or (v[4] == 'end' and mod_time <=v[2]) then
+									if table.getn(v) == 5 then
+										GAMESTATE:ApplyModifiers(v[3],v[5]);
+									else
+										GAMESTATE:ApplyModifiers(v[3]);
+									end
+								end
+							end
+						else
+							v[1] = 0;
+							v[2] = 0;
+							v[3] = 'error';
+							v[4] = 'error';
+							SCREENMAN:SystemMessage('Bad mod in time-based table (line '..i..')');
+						end
+					end
+				end
+				
+				---------------------------------------
+				-- Ease table (includes func_ease) --
+				---------------------------------------
+				if beat > mod_firstSeenBeat+0.1 then
+				for i,v in pairs(mods_ease) do
+		            if v and table.getn(v) > 6 and v[1] and v[2] and v[3] and v[4] and v[5] and v[6] and v[7] then
+		                if beat >=v[1] then
+		                    if (v[6] == 'len' and beat <=v[1]+v[2]) or (v[6] == 'end' and beat <=v[2]) then
+		                        local strength = v[7](beat - v[1], v[3], v[4] - v[3], v[6] == 'end' and v[2] - v[1] or v[2], v[10], v[11])
+		                        if type(v[5]) == 'string' then
+		                        	local modstr = v[5] == 'xmod' and strength..'x' or (v[5] == 'cmod' and 'C'..strength or strength..' '..v[5])
+		                        	GAMESTATE:ApplyModifiers('*9999 '..modstr,v[8]);
+		                        elseif type(v[5]) == 'function' then
+		                        	v[5](strength)
+		                        end
+		                    elseif (v[9] and ((v[6] == 'len' and beat <=v[1]+v[2]+v[9]) or (v[6] == 'end' and beat <=v[9]))) then
+		                    	if type(v[5]) == 'string' then
+		                        	local modstr = v[5] == 'xmod' and v[4]..'x' or (v[5] == 'cmod' and 'C'..v[4] or v[4]..' '..v[5])
+		                        	GAMESTATE:ApplyModifiers('*9999 '..modstr,v[8]);
+		                        elseif type(v[5]) == 'function' then
+		                        	v[5](v[4])
+		                        end
+		                    end
+		                end
+		            else
+		                SCREENMAN:SystemMessage('Ease Error! (line '..i..' | beat: '.. v[1] .. ' | mod: '.. v[5] ..')');
+		            end
+		        end
+				end
+				---------------------
+				-- Perframe reader --
+				---------------------
+				if beat > mod_firstSeenBeat+0.1 then
+				if table.getn(mod_perframes)>0 then
+		            for i=1,table.getn(mod_perframes) do
+		                local a = mod_perframes[i]
+		                if beat > a[1] and beat < a[2] then
+		                    a[3](beat,deltatime);
+		                end
+		            end
+		        end
+				end
+				---------------------------------------
+				-- Actions table --
+				---------------------------------------
+				if beat > mod_firstSeenBeat+0.1 then -- performance coding!! --
+					while curaction<=table.getn(mod_actions) and GAMESTATE:GetSongBeat()>=mod_actions[curaction][1] do
+						if mod_actions[curaction][3] or GAMESTATE:GetSongBeat() < mod_actions[curaction][1]+2 then
+							if type(mod_actions[curaction][2]) == 'function' then
+								mod_actions[curaction][2]()
+							elseif type(mod_actions[curaction][2]) == 'string' then
+								MESSAGEMAN:Broadcast(mod_actions[curaction][2]);
+							end
+						end
+						curaction = curaction+1;
+					end
+				end
+				
+			end
+			
+			mod_lasttime = mod_curtime
+			--self:sleep(0.02);
+			--self:queuecommand('Update');
+			self:hidden(0);
+			self:zoom(0);
+			self:luaeffect('Update');
+
+---------------------------------------------------------------------------------------
+----------------------END DON'T TOUCH IT KIDDO-----------------------------------------
+---------------------------------------------------------------------------------------
+			
+		end"
+		
+	/>
+	
+	<ZZLAER Type="ActorFrame" InitCommand="%function(self) judc = self end"><children>
+	<LAER Type="ActorProxy" InitCommand="%function(self) jud1p = self end"
+	GetProxyMessageCommand="%function(self) if P1 then self:SetTarget(P1:GetChild('Judgment')) end end"/>
+	<LAER Type="ActorProxy" InitCommand="%function(self) jud2p = self end"
+	GetProxyMessageCommand="%function(self) if P2 then self:SetTarget(P2:GetChild('Judgment')) end end"/>
+	</children></ZZLAER>
+	<ZZLAER Type="ActorFrame" InitCommand="%function(self) comc = self end"><children>
+	<LAER Type="ActorProxy" InitCommand="%function(self) com1p = self end"
+	GetProxyMessageCommand="%function(self) if P1 then self:SetTarget(P1:GetChild('Combo')) end end"/>
+	<LAER Type="ActorProxy" InitCommand="%function(self) com2p = self end"
+	GetProxyMessageCommand="%function(self) if P2 then self:SetTarget(P2:GetChild('Combo')) end end"/>
+	</children></ZZLAER>
+	
+	<!--proxies????-->
+	<ActorFrame OnCommand="%function(self) proxyshit = self self:fov(25); self:SetFarDist(9999); end"><children>
+        <ActorProxy OnCommand="%function(self) prox1a = self; self:hidden(1); self:sleep(0.1); self:queuecommand('ProxyInit') end"
+        ProxyInitCommand="%function(self) P1 = SCREENMAN:GetTopScreen():GetChild('PlayerP1'); if P1 then self:SetTarget(P1:GetChild('NoteField')) end end"/>
+        <ActorProxy OnCommand="%function(self) prox1b = self; self:hidden(1); self:sleep(0.1); self:queuecommand('ProxyInit') end"
+        ProxyInitCommand="%function(self) P1 = SCREENMAN:GetTopScreen():GetChild('PlayerP1'); if P1 then self:SetTarget(P1:GetChild('NoteField')) end end"/>
+        <ActorProxy OnCommand="%function(self) prox2a = self; self:hidden(1); self:sleep(0.1); self:queuecommand('ProxyInit') end"
+        ProxyInitCommand="%function(self) P2 = SCREENMAN:GetTopScreen():GetChild('PlayerP2'); if P2 then self:SetTarget(P2:GetChild('NoteField')) end end"/>
+        <ActorProxy OnCommand="%function(self) prox2b = self; self:hidden(1); self:sleep(0.1); self:queuecommand('ProxyInit') end"
+        ProxyInitCommand="%function(self) P2 = SCREENMAN:GetTopScreen():GetChild('PlayerP2'); if P2 then self:SetTarget(P2:GetChild('NoteField')) end end"/>
+    </children></ActorFrame>
+	
+	<!--This is for the time based mod reader-->
+	<BitmapText
+		Font="Common Normal"
+		Text="test"
+		OnCommand="x,SCREEN_CENTER_X;y,SCREEN_CENTER_Y;effectclock,music;playcommand,SetTime;hidden,1"
+		SetTimeCommand="%function(self) self:settext(self:GetSecsIntoEffect()); mod_time = tonumber(self:GetText()); self:sleep(0.02); self:queuecommand('SetTime'); end"
+	/>
+	
+</children></ActorFrame></children></ActorFrame>

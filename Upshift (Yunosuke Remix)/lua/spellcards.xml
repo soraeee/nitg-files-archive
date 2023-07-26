@@ -1,0 +1,54 @@
+<ActorFrame InitCommand="%function(self)
+	function nitg_send_spellcards(cards)
+		if table.getn(cards) == 0 or tonumber(GAMESTATE:GetVersionDate()) < 20170714 then return false end
+		
+		local s = GAMESTATE:GetCurrentSong()
+		s:SetNumSpellCards(table.getn(cards))
+		for i=1,table.getn(cards) do
+			local a = cards[i]
+			s:SetSpellCardTiming(i-1,a[1],a[2])
+			s:SetSpellCardName(i-1,a[3])
+			s:SetSpellCardDifficulty(i-1,a[4])
+			s:SetSpellCardColor(i-1,a[5][1],a[5][2],a[5][3],a[5][4])
+		end
+		
+	end
+	
+	function nitg_send_labels(labels)
+		if table.getn(labels) == 0 or tonumber(GAMESTATE:GetVersionDate()) < 20170714 then return false end
+		
+		local s = GAMESTATE:GetCurrentSong()
+		s:ClearLabels();
+		for i=1,table.getn(labels) do
+			s:AddLabel(labels[i][1],labels[i][2])
+		end
+		
+	end
+	
+	local function rgba(r, g, b, a)
+		if type(r) == 'table' then
+			if not r[4] then r[4] = 1 end
+			return {r[1] / 255, r[2] / 255, r[3] / 255, r[4]}
+		else
+			if not a then a = 1 end
+			return r / 255, g / 255, b / 255, a
+		end
+	end
+	
+	--start,end,name,difficulty,color
+	prefix_spellcards = {
+		--{40,64,'name',6,{.1,.2,.8,1}},
+		{46,67.5,'guys stop fucking comparing this to I',10,rgba({79, 90, 128})},
+		{68,92,'the j in jump stands for jorts',9,rgba({90, 79, 128})},
+		{96,99.5,'A party is a gathering of people who have been invited by a host for the purposes of socializing, conversation, recreation, or as part of',8,rgba({103, 79, 128})},
+		{100,160,'we are backsphere',11,rgba({115, 79, 128})},		
+		{161,194.5,'*-1 1000000000069699 drunkzspeed, *-1 disablemines',10,rgba({126, 79, 128})},
+		{196,227.5,'aster\'s ass context bitch',11,rgba({97, 176, 255})},
+		{228,259.5,'thanks kaypooma',12,rgba({255, 173, 97})},
+		{260,291.5,'i cut this spellcard in half also shoutouts to tev',12,rgba({97, 176, 255})},
+		{292,323.5,'yggdrasil weef',7,rgba({255, 173, 97})},
+		{324,351.5,'upshifts',8,rgba({97, 176, 255})},
+		{352,355.5,'the',69,rgba({79, 90, 128})},
+	}
+	nitg_send_spellcards(prefix_spellcards)
+end"/>

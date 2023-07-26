@@ -1,0 +1,53 @@
+<ActorFrame> <children>
+	<Layer
+		File="grad_bottom.png"
+		OnCommand="%function(self)
+			trd_b = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			self:diffusealpha(0)
+		end"
+	/>
+	<Layer
+		File="grad_top.png"
+		OnCommand="%function(self)
+			trd_t = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			self:diffusealpha(0)
+		end"
+	/>
+	<Layer
+		File="grad_right.png"
+		OnCommand="%function(self)
+			trd_r = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			self:diffusealpha(0)
+		end"
+	/>
+	<Layer
+		File="grad_left.png"
+		OnCommand="%function(self)
+			trd_l = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			self:diffusealpha(0)
+		end"
+	/>
+	<Layer
+		File="grad_middle.png"
+		OnCommand="%function(self)
+			trd_m = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			self:diffuse(1,1,1,0)
+		end"
+	/>
+	
+</children> <ActorFrame>

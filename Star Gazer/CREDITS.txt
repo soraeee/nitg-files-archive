@@ -1,0 +1,18 @@
+=----------------------------------------=
+City assets courtesy of OpenGameArt.org
+Modified from "Pixel Night City" (fridaruiz) https://opengameart.org/content/pixel-night-city
+Modified from "City Background Repetitive 3" (Alucard) https://opengameart.org/content/city-background-repetitive-3
+
+Special thanks to
+XeroOl
+	for hosting Mods Rush
+	
+Ky_Dash
+	for helping fix problems where this file would explode because of the template
+	
+pusemari
+	for the easter egg lin art :shh:
+	
+kaypooma
+	for inspiration from Haunted Dance
+=----------------------------------------=

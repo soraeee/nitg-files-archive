@@ -1,0 +1,234 @@
+<ActorFrame OnCommand="%function(self) cg_bgshit = self self:fov(25); end"> <children>		
+    <Layer Type = "Quad" Var="cg_white"    
+        InitCommand="xy,SCREEN_CENTER_X,SCREEN_CENTER_Y;zoomtowidth,SCREEN_WIDTH;zoomtoheight,SCREEN_HEIGHT;hidden,0;diffuse,1,1,1,1;"    
+    /> 
+	<Layer Type = "Quad" Var="cg_black"    
+        InitCommand="xy,SCREEN_CENTER_X,SCREEN_CENTER_Y;zoomtowidth,SCREEN_WIDTH;zoomtoheight,SCREEN_HEIGHT;hidden,0;diffuse,0,0,0,1;"    
+    />
+	
+	<!-- stuff that is itg -->
+	<Layer
+		File = "itg/0.png"
+		OnCommand="%function(self)
+			cg_itg0 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			
+			self:diffuse(1,1,1,1)
+		end"
+	/>
+	<Layer
+		File = "itg/1.png"
+		OnCommand="%function(self)
+			cg_itg1 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			
+			self:diffuse(1,1,1,0)
+		end"
+	/>
+	<Layer
+		File = "itg/2.png"
+		OnCommand="%function(self)
+			cg_itg2 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			
+			self:diffuse(1,1,1,0)
+		end"
+	/>
+	<Layer
+		File = "itg/3.png"
+		OnCommand="%function(self)
+			cg_itg3 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			
+			self:diffuse(1,1,1,0)
+		end"
+	/>
+	<Layer
+		File = "itg/4.png"
+		OnCommand="%function(self)
+			cg_itg4 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			
+			self:diffuse(1,1,1,0)
+		end"
+	/>
+	<Layer
+		File = "itg/5.png"
+		OnCommand="%function(self)
+			cg_itg5 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			
+			self:diffuse(1,1,1,0)
+		end"
+	/>
+	<Layer
+		File = "itg/6.png"
+		OnCommand="%function(self)
+			cg_itg6 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			
+			self:diffuse(1,1,1,0)
+		end"
+	/>
+	<Layer
+		File = "itg/7.png"
+		OnCommand="%function(self)
+			cg_itg7 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			
+			self:diffuse(1,1,1,0)
+		end"
+	/>
+	
+	<!-- stuff that isnt itg --> 
+	<Layer
+		File = "sexagon.png"
+		OnCommand="%function(self)
+			cg_sexgrid = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:customtexturerect(0, 0, 32, 32)
+			self:texcoordvelocity(0.3, 0, 0)
+			self:zoom(1.5)
+			
+			self:diffuse(0, 0, 0, 0.1)
+		end"
+	/>
+	
+	<Layer Type = "ActorFrame" OnCommand="%function(self) cg_stripesettop = self self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y+1000) self:rotationz(-5) end"> <children>
+		<Layer
+			File = "line.png"
+			OnCommand="%function(self)
+				cg_stripetop = self
+				self:x(0)
+				self:y(-200)
+				--self:customtexturerect(0, 0, 20, 1)
+				--self:texcoordvelocity(0.3, 0, 0)
+				self:zoomx(30)
+				self:zoomy(0.3)
+				
+				self:diffuse(248/255, 180/255, 0, 1)
+			end"
+		/>		
+		<Layer
+			File = "dash.png"
+			OnCommand="%function(self)
+				cg_dashtop1 = self
+				self:x(0)
+				self:y(-230)
+				self:customtexturerect(0, 0, 60, 1)
+				self:texcoordvelocity(0.3, 0, 0)
+				self:zoomx(10)
+				self:zoomy(0.1)
+				
+				self:diffuse(248/255, 180/255, 0, 1)
+			end"
+		/>	
+		<Layer
+			File = "dash.png"
+			OnCommand="%function(self)
+				cg_dashtop2 = self
+				self:x(0)
+				self:y(-170)
+				self:customtexturerect(0, 0, 60, 1)
+				self:texcoordvelocity(0.4, 0, 0)
+				self:zoomx(10)
+				self:zoomy(0.1) -- thanks
+				
+				self:diffuse(248/255, 180/255, 0, 1)
+			end"
+		/>		
+	</children> </Layer>
+	
+	<Layer Type = "ActorFrame" OnCommand="%function(self) cg_stripesetbottom = self self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y-1000) self:rotationz(-5) end"> <children>
+		<Layer
+			File = "line.png"
+			OnCommand="%function(self)
+				cg_stripebottom = self
+				self:x(0)
+				self:y(200)
+				--self:customtexturerect(0, 0, 20, 1)
+				--self:texcoordvelocity(0.3, 0, 0)
+				self:zoomx(30)
+				self:zoomy(0.3)
+				
+				self:diffuse(248/255, 180/255, 0, 1)
+			end"
+		/>		
+		<Layer
+			File = "dash.png"
+			OnCommand="%function(self)
+				cg_dashbottom1 = self
+				self:x(0)
+				self:y(230)
+				self:customtexturerect(0, 0, 60, 1)
+				self:texcoordvelocity(0.3, 0, 0)
+				self:zoomx(10)
+				self:zoomy(0.1)
+				
+				self:diffuse(248/255, 180/255, 0, 1)
+			end"
+		/>	
+		<Layer
+			File = "dash.png"
+			OnCommand="%function(self)
+				cg_dashbottom2 = self
+				self:x(0)
+				self:y(170)
+				self:customtexturerect(0, 0, 60, 1)
+				self:texcoordvelocity(0.4, 0, 0)
+				self:zoomx(10)
+				self:zoomy(0.1)
+				
+				self:diffuse(248/255, 180/255, 0, 1)
+			end"
+		/>		
+	</children> </Layer>	
+	
+	<Layer
+		File = "diamond.png"
+		OnCommand="%function(self)
+			cg_diamond = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y+1000)
+			self:customtexturerect(0, 0, 3, 1)
+			self:texcoordvelocity(3.5, 0, 0)
+			
+			self:zoomx(1.5)
+			self:zoomy(0.5)
+			
+			self:diffuse(169/255, 39/255, 250/255, 0.8)
+		end"
+	/>	
+	<Layer
+		File = "circle.png"
+		OnCommand="%function(self)
+			cg_circle = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y-1000)
+			self:customtexturerect(0, 0, 3, 1)
+			self:texcoordvelocity(3.5, 0, 0)
+			
+			self:zoomx(1.5)
+			self:zoomy(0.5)
+			
+			self:diffuse(0, 225/255, 192/255, 0.8)
+		end"
+	/>	
+</children> </ActorFrame>

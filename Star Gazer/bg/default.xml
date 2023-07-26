@@ -1,0 +1,80 @@
+<Layer Type="ActorFrame" InitCommand="%function(self)
+	if not _G.________init then _G.________init = 'bg' end
+	self:sleep(9E9)
+end"><children>
+	<Layer Condition="_G.________init == 'bg'" File="../init.xml"/> <!-- load this if bg is loaded first -->
+	<!-- bg things go here -->	
+	<Layer
+		File="black"
+		OnCommand="%function(self)
+			blackbg = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			self:diffusealpha(1)
+			self:hidden(0)
+		end"
+	/>
+	
+	<Layer
+		File="sky"
+		OnCommand="%function(self)
+			sky = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y-200)
+			self:zoom(0.5)
+			self:diffusealpha(1)
+			self:hidden(0)
+		end"
+	/>
+	
+	<Layer
+		File="stargrid"
+		OnCommand="%function(self)
+			stargrid = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoom(2)
+			self:diffusealpha(0.5)
+			self:customtexturerect(0,0,4,4)
+			self:texcoordvelocity(0.05,0)
+		end"
+	/>	
+		
+	<Layer
+		File="backgroundback"
+		OnCommand="%function(self)
+			backgroundback = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y+100)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			self:diffusealpha(1)
+			--self:customtexturerect(0,0,4,4)
+			--self:texcoordvelocity(0.06,0)
+		end"
+	/>	
+	<Layer
+		File="bottomfunny"
+		OnCommand="%function(self)
+			bottomfunny = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			self:diffusealpha(0)
+		end"
+	/>	
+	<Layer
+		File="backgroundfront"
+		OnCommand="%function(self)
+			backgroundfront = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y+100)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			self:diffusealpha(1)
+			--self:customtexturerect(0,0,4,4)
+			--self:texcoordvelocity(0.06,0)
+		end"
+	/>	
+		
+	<Layer Condition="_G.________init == 'fg' and m_prefix.reset()"/> <!-- unload if fg is loaded first -->
+</children></Layer>

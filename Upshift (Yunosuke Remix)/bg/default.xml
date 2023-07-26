@@ -1,0 +1,78 @@
+<ActorFrame OnCommand="%function(self) upsh_bgcock = self self:fov(40); self:SetDrawByZPosition(true); self:SetFarDist(9999); end"> <children>
+	<Layer
+		Type="Quad"
+		OnCommand="%function(self)
+			upsh_black = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			
+			self:diffuse(0,0,0,1)
+		end"
+	/>
+	<Layer
+		File="gradorange.png"
+		OnCommand="%function(self)
+			upsh_gradorange = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			self:diffusealpha(0)
+		end"
+	/>
+	<Layer
+		File="gradblue.png"
+		OnCommand="%function(self)
+			upsh_gradblue = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoomto(SCREEN_WIDTH,SCREEN_HEIGHT)
+			self:diffusealpha(0)
+		end"
+	/>	
+	<Layer
+		File="arrow.png"
+		OnCommand="%function(self)
+			upsh_arrow = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:diffusealpha(0)
+		end"
+	/>	
+	<Layer
+		File="arrow.png"
+		OnCommand="%function(self)
+			upsh_arrow2 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y+500)
+			self:diffusealpha(0)
+		end"
+	/>	
+	<Layer
+		File="tile.png"
+		OnCommand="%function(self)
+			upsh_tile1 = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y+60)
+			self:diffusealpha(0)
+			
+			self:customtexturerect(0,0,15,15)			
+			self:texcoordvelocity(0,0.2,0)
+			self:zoom(20)
+			self:zoomz(40)
+			
+			self:SetTextureFiltering(false)
+			
+			self:rotationx(-80)
+		end"
+	/>
+	<Layer
+		File="gradient.png"
+		OnCommand="%function(self)
+			upsh_grad = self
+			self:zoomtowidth(SCREEN_WIDTH)
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y+20)
+		end"
+	/>
+</children> </ActorFrame>

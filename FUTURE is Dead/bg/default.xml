@@ -1,0 +1,71 @@
+<ActorFrame OnCommand="%function(self) ftr_bgshit = self self:fov(25); end"> <children>		
+    <Layer Type = "Sprite" Texture="itg.png"    Var="bg_default"    
+        InitCommand="xy,SCREEN_CENTER_X,SCREEN_CENTER_Y;zoomtowidth,SCREEN_WIDTH;zoomtoheight,SCREEN_HEIGHT;hidden,0;diffusealpha,0;"    
+    />
+	<Layer
+		File="parts/itgbg.png"
+		OnCommand="%function(self)
+			itgbg = self
+			self:x(SCREEN_CENTER_X)
+			self:y(SCREEN_CENTER_Y)
+			self:zoom(0)
+			self:hidden(1)
+			self:diffusealpha(1)
+		end"
+	/>
+	<Layer
+		File="parts/in.png"
+		OnCommand="%function(self)
+			itgin = self
+			self:x(SCREEN_CENTER_X-260)
+			self:y(SCREEN_CENTER_Y-100)
+			self:zoom(0)
+			self:hidden(1)
+			self:diffusealpha(1)
+		end"
+	/>
+	<Layer
+		File="parts/the.png"
+		OnCommand="%function(self)
+			itgthe = self
+			self:x(SCREEN_CENTER_X-125)
+			self:y(SCREEN_CENTER_Y-100)
+			self:zoom(0)
+			self:hidden(1)
+			self:diffusealpha(1)
+		end"
+	/>
+	<Layer
+		File="parts/two.png"
+		OnCommand="%function(self)
+			itgtwo = self
+			self:x(SCREEN_CENTER_X+190)
+			self:y(SCREEN_CENTER_Y)
+			self:zoom(0)
+			self:hidden(1)
+			self:diffusealpha(1)
+		end"
+	/>
+	<Layer
+		File="parts/groove.png"
+		OnCommand="%function(self)
+			itggroove = self
+			self:x(SCREEN_CENTER_X-75)
+			self:y(SCREEN_CENTER_Y)
+			self:zoom(0)
+			self:hidden(1)
+			self:diffusealpha(1)
+		end"
+	/>
+	<Layer
+		File="parts/roxor.png"
+		OnCommand="%function(self)
+			itgroxor = self
+			self:x(SCREEN_CENTER_X+165)
+			self:y(SCREEN_CENTER_Y+120)
+			self:zoom(0)
+			self:hidden(1)
+			self:diffusealpha(1)
+		end"
+	/>
+</children> </ActorFrame>

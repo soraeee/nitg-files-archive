@@ -1,0 +1,655 @@
+<Layer Type="ActorFrame" InitCommand="%m_prefix(function(self)
+if init then init = nil return end -- prevent init frum running twice
+init = true
+
+local function player(pn, e)
+    e = e or 'p'
+    return players[pn][e]
+end
+--[[
+	regular mods usage
+		{start, end, 'mods' [, pn, timing]} OR {start, 'mods' [, pn]}
+	example usage
+		{2, 10, '*-1 100 drunk'}
+			🡤 applies 100% drunk from beats 2 to 12
+		{2, 10, '*-1 tipsy', pn = 1, timing = 'end'}
+			🡤 applies 100% tipsy on player 1 from beats 2 to 10
+		{5, '*-1 1000 zoomz', pn = {1, 4, 2}}
+			🡤 applies 1000% zoomz for one frame on players 1, 2, and 4
+	optional inputs
+		- pn: can be a player number or a table of player numbers
+			defaults to all players
+		- timing: sets the end type to either 'len' or 'end'
+			defaults to 'len'
+
+	function
+		{start, function [, persist, timing, func_if_persist]}
+	optional inputs
+		- persist: can be a boolean or a number, specifying the range to run the function if playback is started after the starting point in the editor
+		- timing: if using persist as a number, sets the range of beats the function will run to be either 'len' or 'end'
+		- func_if_persist: if using persist, will run the function specified instead of the first function
+
+
+
+]]
+
+default.behavior(exschwasion) --HI MY NAME IS EXSCHWASION
+m(0,9999,'*-1 dizzyholds','end')
+local me,mb,m,mm,mpf = mod_ease,mod_bounce,mod_insert,mod_message,mod_perframe
+
+local function TiB(b)
+    return (1/GAMESTATE:GetCurBPS()) * b
+end
+
+function modulo(a, b)
+	return a - math.floor(a/b)*b;
+end
+
+function SpawnPlayers(beat,lower,upper,which,persist)
+	local offset = -0.1
+	local w = tostring(which)
+	if which == 'despawn' then offset = -offset end
+	mod_message(beat+offset,function(self)
+		for i = lower,upper,1 do
+			local a = player(i)
+			if a then
+				if w == 'spawn' then
+					a:SetAwake(true)
+				elseif w == 'despawn' then
+					a:SetAwake(false)
+				end
+				a:zoom(0)
+			end
+		end
+	end,true)
+	mod_message(beat,function(self)
+		for i = lower,upper,1 do
+			local a = player(i)
+			if a then
+				if w == 'spawn' then
+					a:hidden(0)
+					a:zoom(1)
+				elseif w == 'despawn' then
+					a:zoom(0)
+					a:hidden(1)
+				end
+			end
+		end
+	end,true)
+end
+
+function hidecol(beat,len,col,which,pn)
+	if not which then which = 0 end
+	for i,v in ipairs(col) do
+		if which == 1 then
+			m(beat,len,'*-1 100 dark'..v..',*-1 100 stealth'..v..',*-1 100 hidenoteflashes'..v,'len',pn)
+		else
+			m(beat,len,'*-1 0 dark'..v..',*-1 0 stealth'..v..',*-1 0 hidenoteflashes'..v,'len',pn)
+		end
+	end				
+end
+
+function randomXD(t)
+	if t == 0 then return 0.5 else
+	return modulo(math.sin(t * 3229.3) * 43758.5453, 1) end
+end
+
+mm(0,function()
+	for pn = 1,2 do
+		player(pn):x(short.scx)
+	end
+	backgroundback:y(short.scy+1000)
+	backgroundfront:y(short.scy+1000)
+end,true)
+
+me(0,252,0,-100,function(a) stargrid:rotationz(a.value) end,'len',linear)
+
+--intro
+for i = 0,28,2 do
+	me(i,1,30,30,'movey0','len',linear)
+	me(i,1,30,30,'movey2','len',linear)
+	me(i,1,-30,-30,'movey1','len',linear)
+	me(i,1,-30,-30,'movey3','len',linear)
+	
+	me(i+0.5,1,20,20,'invert','len',linear)
+	
+	me(i+1,1,-30,-30,'movey0','len',linear)
+	me(i+1,1,-30,-30,'movey2','len',linear)
+	me(i+1,1,30,30,'movey1','len',linear)
+	me(i+1,1,30,30,'movey3','len',linear)
+	
+	me(i+1.5,1,-20,-20,'invert','len',linear)
+end
+
+me(14.5,1.5,-628*2,0,'confusionyoffset','len',linear)
+me(14.5,1.5,360*2,0,'rotationy','len',linear)
+me(14.5,4,short.scy+500,short.scy+100,function(a) backgroundback:y(a.value) end,'len',outExpo)
+me(14.5,4,short.scy+700,short.scy+100,function(a) backgroundfront:y(a.value) end,'len',outExpo)
+me(14.5,1,0,2,function(a) stargrid:texcoordvelocity(0.05,a.value) end,'len',outExpo)
+me(15.5,2,2,0,function(a) stargrid:texcoordvelocity(0.05,a.value) end,'len',outExpo)
+
+for i = 16,22,2 do
+	me(i+1,1,-250,0,'tiny','len',outCubic)
+	
+	local m = 1
+	if i/2 % 2 == 1 then m = -1 end
+	me(i,1,50*m,0,'tipsy','len',outCubic)
+	me(i,1,-50*m,0,'confusionzoffset','len',outCubic)
+	me(i,1,50*m,0,'rotationx','len',outCubic)
+end
+me(24,1,50,0,'rotationx','len',outQuad)
+me(24,1,30,0,'rotationy','len',outQuad)
+
+me(25,1,50,0,'rotationx','len',outQuad)
+me(25,1,-30,0,'rotationy','len',outQuad)
+
+me(26,1,-50,0,'rotationx','len',outQuad)
+me(26,1,30,0,'rotationy','len',outQuad)
+
+me(27,1,-50,0,'rotationx','len',outQuad)
+me(27,1,-30,0,'rotationy','len',outQuad)
+
+me(28,2.5,0,70,'rotationx','len',outQuad)
+me(24,6.5,100,500,'zoomz','len',outQuad)
+
+me(30.5,1,70,0,'rotationx','len',outQuad)
+me(30.5,1,500,100,'zoomz','len',outQuad)
+
+me(31,1,628,0,'confusionzoffset','len',linear)
+
+--PINGAS
+m(31,96,'*-1 100% dark,*-1 100% hidenoteflashes, *-1 halgun, *-1 -98 drawsizeback','end',1)
+m(32,96,'*-1 100% stealth, *-1 -98 drawsizeback','end',2)
+
+st_rotx = 0
+st_roty = 0
+
+--[[mpf(32,63,function(beat,deltatime)
+	st_rotx = 20*math.sin(beat)
+	st_roty = 20*math.cos(beat)
+	for pn = 1,2 do
+		local m = (pn*2)-3
+		addmods('*-1 '..20*math.sin(beat)*m..' rotationx',pn)
+		addmods('*-1 '..20*math.cos(beat)*m..' rotationy',pn)
+	end
+end)]]
+for i = 32,94 do
+	me(i,1,0,200,'centered2','len',linear,1)
+	me(i,0.5,110,100,'zoom','len',outCirc)
+	me(i,1,-200,0,'tiny','len',outCirc)
+	
+	for c = 0,3 do
+		me(i+c,0.5,100*math.random()-50,0,'confusionzoffset'..c,'len',inExpo)
+	end
+	me(i,0.5,SCREEN_CENTER_Y+100,SCREEN_CENTER_Y+95,function(a) backgroundback:y(a.value) end,'len',outCubic)
+	me(i+0.5,0.5,SCREEN_CENTER_Y+95,SCREEN_CENTER_Y+100,function(a) backgroundback:y(a.value) end,'len',inCubic)
+	
+	me(i,0.5,SCREEN_CENTER_Y+100,SCREEN_CENTER_Y+90,function(a) backgroundfront:y(a.value) end,'len',outCubic)
+	me(i+0.5,0.5,SCREEN_CENTER_Y+90,SCREEN_CENTER_Y+100,function(a) backgroundfront:y(a.value) end,'len',inCubic)
+end		
+for i = 32,92,4 do
+	for pn = 1,2 do
+		local mu = (pn*2)-3
+		local ks = 0
+		if i == 60 then ks = 999 end
+		m(i,2,'*-1 '..15*mu..' rotationx','len',pn)
+		m(i+1+ks,2,'*-1 '..15*mu..' rotationy','len',pn)
+		
+		m(i+2,2,'*-1 '..-15*mu..' rotationx','len',pn)
+		m(i+3+ks,2,'*-1 '..-15*mu..' rotationy','len',pn)
+	end
+end
+for i = 32,94,2 do
+	for pn = 1,2 do
+		local mu = (pn*2)-3
+		m(i,1,'*-1 '..10*mu..' invert','len',pn)
+		m(i+1,1,'*-1 '..-10*mu..' invert','len',pn)
+	end
+end
+--me(31.5,0.5,0,80,'centered2','len',linear,1)
+
+me(62.5,1,-628*2,0,'confusionyoffset','len',linear)
+me(62.5,1,360*2,0,'rotationy','len',linear)
+
+for i = 64,92,2 do
+	for pn = 1,2 do
+	local m = (pn*2)-3
+	
+	local d = 1
+	if i/4 % 2 == 1 then d = -1 end
+	
+	me(i,1,100*m*d*(i/128),100*m*d*(i/128),'movex','len',linear,pn)
+	me(i+1,1,0,0,'movex','len',linear,pn)	
+	end	
+end
+for i = 64,93 do
+	me(i,1,short.sw+20,short.sw,function(a) backgroundfront:zoomtowidth(a.value) end,'len',outCubic)
+	me(i,1,short.sh+20,short.sh,function(a) backgroundfront:zoomtoheight(a.value) end,'len',outCubic)
+	
+	me(i,1,short.sw+10,short.sw,function(a) backgroundback:zoomtowidth(a.value) end,'len',outCubic)
+	me(i,1,short.sh+10,short.sh,function(a) backgroundback:zoomtoheight(a.value) end,'len',outCubic)
+end
+
+me(72,1,120,0,'tipsy','len',outSine)
+me(74,1,-120,0,'tipsy','len',outSine)
+me(77,1,120,0,'tipsy','len',outSine)
+me(78,1,314,0,'confusionzoffset','len',outQuad)
+me(79,1,-314,0,'confusionzoffset','len',outQuad)
+
+me(95,2,0,100,'flip','len',outQuad)
+me(94,2,100,0,'zoom','len',inExpo)
+
+--Jump s
+for i,v in ipairs(wenis) do	
+	me(v[1],1,short.sw+50,short.sw,function(a) backgroundfront:zoomtowidth(a.value) end,'len',outCubic)
+	me(v[1],1,short.sh+50,short.sh,function(a) backgroundfront:zoomtoheight(a.value) end,'len',outCubic)
+	
+	me(v[1],1,short.sw+30,short.sw,function(a) backgroundback:zoomtowidth(a.value) end,'len',outCubic)
+	me(v[1],1,short.sh+30,short.sh,function(a) backgroundback:zoomtoheight(a.value) end,'len',outCubic)
+end
+
+m(96,1,'*-1 no flip, *-1 no dark, *-1 no stealth, *-1 no hidenoteflashes, *-1 no centered2, *-1 no confusionzoffset')
+m(96,108,'*-1 50 brake','end')
+for i = 96,102,2 do
+	mb(i,2,0,100,'zoom',{in_ease = outCubic, out_ease = inCubic})
+	
+	local m = 1
+	if i/2 % 2 == 1 then m = -1 end
+	me(i,2,360*m,0,'rotationz','len',outExpo)
+end
+for i = 104,107 do
+	mb(i,1,0,100,'zoom',{in_ease = outCubic, out_ease = inCubic})
+end
+me(108,0.5,0,100,'zoom','len',outCubic)
+me(96,176,100,800,'zoomz','end',linear)
+
+--SPAGHETTI
+me(96,2,30,30,'rotationy','len',linear)
+me(96,2,50,50,'rotationx','len',linear)
+
+me(98,2,-30,-30,'rotationy','len',linear)
+me(98,2,-50,-50,'rotationx','len',linear)
+
+me(100,2,-35,-35,'rotationy','len',linear)
+me(100,2,50,50,'rotationx','len',linear)
+
+me(102,2,35,35,'rotationy','len',linear)
+me(102,2,-50,-50,'rotationx','len',linear)
+
+me(104,1,30,30,'rotationy','len',linear)
+me(104,1,40,40,'rotationx','len',linear)
+
+me(105,1,-30,-30,'rotationy','len',linear)
+me(105,1,-40,-40,'rotationx','len',linear)
+
+me(106,1,-35,-35,'rotationy','len',linear)
+me(106,1,40,40,'rotationx','len',linear)
+
+me(107,1,35,35,'rotationy','len',linear)
+me(107,1,-40,-40,'rotationx','len',linear)
+
+m(96,2,'*-1 flip','len') -- too lazy to for loop
+m(98,2,'*-1 no flip','len')
+m(100,2,'*-1 flip','len')
+m(102,2,'*-1 no flip','len')
+m(104,1,'*-1 flip','len')
+m(105,1,'*-1 no flip','len')
+m(106,1,'*-1 flip','len')
+m(107,1,'*-1 no flip','len')
+--END SPAGHETTI
+
+me(108,1,'*-1 no brake, *-1 100 zoomz','len')
+
+mb(108,1,0,50,'skewx',{in_ease = outCubic, out_ease = inExpo})
+mb(108,1,0,-40,'noteskewx',{in_ease = outCubic, out_ease = inExpo})
+mb(108,1,0,-30,'rotationy',{in_ease = outCubic, out_ease = inExpo})
+mb(108,1,0,10,'rotationz',{in_ease = outCubic, out_ease = inExpo})
+me(108,1,-400,0,'tiny','len',outCubic)
+
+mb(109,1,0,-50,'skewx',{in_ease = outCubic, out_ease = inExpo})
+mb(109,1,0,40,'noteskewx',{in_ease = outCubic, out_ease = inExpo})
+mb(109,1,0,30,'rotationy',{in_ease = outCubic, out_ease = inExpo})
+mb(109,1,0,-10,'rotationz',{in_ease = outCubic, out_ease = inExpo})
+me(109,1,-400,0,'tiny','len',outCubic)
+
+mb(110,1,0,-60,'rotationx',{in_ease = outExpo, out_ease = inExpo})
+me(110,1,-400,0,'tiny','len',outCubic)
+
+me(110.5,1.5,-360*2,0,'rotationy','len',inOutSine)
+me(110.5,1.5,628*2,0,'confusionyoffset','len',inOutSine)
+
+st_mult1 = 0
+st_mult2 = 0
+st_mult3 = 0
+me(110.5,1.5,0,1,function(a) st_mult1 = a.value st_mult3 = a.value end,'len',outCubic)
+me(112,1,0,1,function(a) st_mult2 = a.value end,'len',outCubic)
+
+--haha drop
+me(109,3,SCREEN_CENTER_Y+600,SCREEN_CENTER_Y+165,function(a) cityfront:y(a.value) end,'len',outCubic)
+me(109,3,SCREEN_CENTER_Y+100,SCREEN_CENTER_Y,function(a) backgroundfront:y(a.value) end,'len',outCubic)
+me(109,3,SCREEN_CENTER_Y+100,SCREEN_CENTER_Y+50,function(a) backgroundback:y(a.value) end,'len',outCubic)
+me(109,1,0,-2,function(a) stargrid:texcoordvelocity(0.05,a.value) end,'len',outCubic)
+me(110,2,-2,0,function(a) stargrid:texcoordvelocity(0.05,a.value) end,'len',outCubic)
+
+m(112,143,'*-1 100 beaty','end',1)
+m(112,143,'*-1 -100 beaty','end',2)
+m(112,144,'*1 50 brake','end')
+mm(112,function()
+	cityfront:zbuffer(1)
+	proxyshit:SetDrawByZPosition(true)
+end,true)
+mpf(110.5,144,function(beat,deltatime)
+	for pn = 1,2 do
+		local o = ((pn-1)*4)
+		addmods('*-1 '..st_mult1*250*math.sin(beat+o/1.25) ..'% movez',pn)
+		addmods('*-1 '..st_mult3*250*math.cos(beat+o/1.25) ..'% movex',pn)
+	end
+end)
+mpf(112,144,function(beat,deltatime)
+	for pn = 1,2 do
+		local mu = (pn*2)-3
+		
+		addmods('*-1 '..st_mult2*mu*20*math.sin(beat)..' rotationx',pn)
+		addmods('*-1 '..st_mult2*mu*5*math.cos(beat)..' rotationz',pn)
+		addmods('*-1 '..st_mult2*mu*25*math.cos(beat)..' rotationy',pn)
+	end
+end)
+
+me(126.5,2,628*2,0,'confusionzoffset','len',outSine)
+me(126.5,1.5,1,-1,function(a) st_mult3 = a.value end,'len',inOutCubic)
+me(126.5,1.5,1,-0.4,function(a) st_mult2 = a.value end,'len',inOutCubic)
+
+for i = 112,138,2 do	
+	me(i+1,0.5,110,100,'zoom','len',outCirc)
+	me(i+1,1,-200,0,'tiny','len',outCirc)	
+	
+	me(i+1,1,short.sw+50,short.sw,function(a) backgroundfront:zoomtowidth(a.value) end,'len',outCubic)
+	me(i+1,1,short.sh+50,short.sh,function(a) backgroundfront:zoomtoheight(a.value) end,'len',outCubic)
+	
+	me(i+1,1,short.sw+30,short.sw,function(a) backgroundback:zoomtowidth(a.value) end,'len',outCubic)
+	me(i+1,1,short.sh+30,short.sh,function(a) backgroundback:zoomtoheight(a.value) end,'len',outCubic)
+	
+	me(i,0.5,SCREEN_CENTER_Y+165,SCREEN_CENTER_Y+155,function(a) cityfront:y(a.value) end,'len',outCubic)
+	me(i+0.5,0.5,SCREEN_CENTER_Y+155,SCREEN_CENTER_Y+165,function(a) cityfront:y(a.value) end,'len',inCubic)
+	me(i+1,0.5,SCREEN_CENTER_Y+165,SCREEN_CENTER_Y+155,function(a) cityfront:y(a.value) end,'len',outCubic)
+	me(i+1.5,0.5,SCREEN_CENTER_Y+155,SCREEN_CENTER_Y+165,function(a) cityfront:y(a.value) end,'len',inCubic)
+end
+me(143,1,1,0,function(a) st_mult1 = a.value end,'len',outCubic)
+me(143,1,-0.4,0,function(a) st_mult2 = a.value end,'len',outCubic)
+me(143,1,-1,0,function(a) st_mult3 = a.value end,'len',outCubic)
+
+mb(140.5,0.75,0,120,'tipsy',{in_ease = outBack, out_ease = inCubic})
+me(140.5,0.5,120,100,'zoom','len',outCubic)
+me(140.5,0.5,-300,0,'tiny','len',outCubic)
+
+mb(141.25,0.5,0,-120,'tipsy',{in_ease = outBack, out_ease = inCubic})
+me(141.25,0.5,120,100,'zoom','len',outCubic)
+me(141.25,0.5,-300,0,'tiny','len',outCubic)
+
+mb(141.75,0.75,0,120,'tipsy',{in_ease = outBack, out_ease = inCubic})
+me(141.75,0.5,120,100,'zoom','len',outCubic)
+me(141.75,0.5,-300,0,'tiny','len',outCubic)
+
+mb(142.5,1,0,-120,'tipsy',{in_ease = outBack, out_ease = inCubic})
+me(142.5,0.5,120,100,'zoom','len',outCubic)
+me(142.5,0.5,-300,0,'tiny','len',outCubic)
+
+--funny
+me(144,4,short.scy+165,short.scy,function(a) cityfront:y(a.value) end,'len',inOutExpo)
+me(144,4,short.scx-1030,short.scx-850,function(a) cityfront:x(a.value) end,'len',inOutExpo)
+
+me(144,4,short.scy,short.scy-100,function(a) backgroundfront:y(a.value) end,'len',inOutExpo)
+me(144,4,short.scy+50,short.scy-50,function(a) backgroundback:y(a.value) end,'len',inOutExpo)
+
+me(144,4,1,1.2,function(a) backgroundfront:zoomto(short.sw*a.value,short.sh*a.value) end,'len',inOutExpo)
+me(144,4,1,1.4,function(a) backgroundback:zoomto(short.sw*a.value,short.sh*a.value) end,'len',inOutExpo)
+
+me(144,4,0.05,0.2,function(a) stargrid:texcoordvelocity(a.value,0) end,'len',inCubic)
+me(172,4,0.2,0.0,function(a) stargrid:texcoordvelocity(a.value,0) end,'len',inCubic)
+
+me(148,174,short.scx-850,short.scx+700,function(a) cityfront:x(a.value) end,'end',inOutQuad)
+me(148,174,short.scx,short.scx+60,function(a) backgroundfront:x(a.value) end,'end',inOutQuad)
+me(148,174,short.scx,short.scx+40,function(a) backgroundback:x(a.value) end,'end',inOutQuad)
+
+mm(144,function()
+	cityfront:zbuffer(0)
+	cityfront:z(-1)
+	bottomfunny:diffusealpha(1)
+end,true)
+me(143,0.5,40,0,'skewx','len',outCubic)
+me(143.5,0.5,-40,0,'skewx','len',outCubic)
+
+me(144,145,0,100,'drunkz','end',linear,nil,174)
+me(144,145,0,150,'wave','end',linear,nil,174)
+me(144,145,2,1.75,'xmod','end',linear,nil,174)
+
+for i = 144,164,8 do
+	mb(i,4,0,-15,'rotationy',{in_ease = outSine, out_ease = inSine})
+	mb(i+4,4,0,15,'rotationy',{in_ease = outSine, out_ease = inSine})
+end
+
+for i,v in ipairs(b_tm_ok) do --:b: :tm: :ok:
+	if v[2] == 1 then
+		mb(v[1],v[4],0,100,'tipsy',{in_ease = outBack, out_ease = inCubic})
+	else
+		mb(v[1],v[4],0,-100,'tipsy',{in_ease = outBack, out_ease = inCubic})
+	end
+	if v[1] < 168 then
+		me(v[1],1,110,100,'zoom','len',outCubic)
+		me(v[1],1,-250,0,'tiny','len',outCubic)
+	end
+end
+for i,v in ipairs(windows_xp) do
+	if v[2] == 1 then
+		mb(v[1],v[4],0,-10,'rotationx',{in_ease = outBack, out_ease = inCubic})
+	else
+		mb(v[1],v[4],0,10,'rotationx',{in_ease = outBack, out_ease = inCubic})
+	end
+end
+
+me(147.5,2.5,360,0,'rotationx','len',outQuad)
+me(147.5,2.5,-638,0,'confusionxoffset','len',outQuad)
+
+me(148.5,2,628,0,'confusionzoffset','len',outQuad)
+
+me(155.5,2.5,-360,0,'rotationx','len',outQuad)
+me(155.5,2.5,638,0,'confusionxoffset','len',outQuad)
+
+mb(158,2,0,40,'rotationx',{in_ease = outQuad, out_ease = inQuad})
+mb(158,2,0,-69.8,'confusionxoffset',{in_ease = outQuad, out_ease = inQuad})
+
+for i,v in ipairs(the_feet_pics) do
+	me(v[1],1,628,0,'confusionzoffset'..v[2],'len',outCubic)
+	me(v[1],1,-200,0,'tinyy'..v[2],'len',outCubic)
+end
+for i = 168,172 do
+	me(i,1,120,100,'zoom','len',outCubic)
+	me(i,1,-450,0,'tiny','len',outCubic)
+end
+me(168,169,0,99.9,'reverse','end',outCubic,nil,172.5)
+me(172.5,1.5,99.9,0,'reverse','len',outCubic)
+
+me(172.5,3,-360,0,'rotationx','len',outCubic)
+me(172.5,3,638,0,'confusionxoffset','len',outCubic)
+
+--floaty boys
+me(176,16,short.scy,short.scy+1000,function(a) cityfront:y(a.value) end,'len',inQuad)
+
+me(176,16,short.scy-100,short.scy+800,function(a) backgroundfront:y(a.value) end,'len',inQuad)
+me(176,16,short.scy-50,short.scy+700,function(a) backgroundback:y(a.value) end,'len',inQuad)
+me(176,16,short.scy-200,short.scy+200,function(a) sky:y(a.value) end,'len',inQuad)
+
+me(176,8,0,0.5,function(a) stargrid:texcoordvelocity(0,a.value) end,'len',inQuad)
+mm(176,function()
+	bottomfunny:diffusealpha(0)
+end,true)
+
+me(174.5,1.5,-628,0,'confusionzoffset','len',outQuad)
+me(174.5,1.5,-200,0,'tiny','len',outQuad)
+
+me(175,176,100,80,'zoom','end',inOutQuad,nil,236)
+me(175,180,800,400,'zoomz','end',inOutQuad,nil,236)
+
+for i = 176,232,8 do
+	mb(i,4,0,100,'movey',{in_ease = outSine, out_ease = inSine, pn = 1})
+	mb(i,4,0,-100,'movey',{in_ease = outSine, out_ease = inSine, pn = 2})	
+	mb(i+4,4,0,-100,'movey',{in_ease = outSine, out_ease = inSine, pn = 1})	
+	mb(i+4,4,0,100,'movey',{in_ease = outSine, out_ease = inSine, pn = 2})
+end
+
+for i = 176,228,4 do
+	me(i,1,-300,0,'tiny','len',outQuad)
+	me(i+2,1,-300,0,'tiny','len',outQuad)
+	
+	local m = 1
+	if i/4 % 2 == 1 then m = -1 end
+	me(i+2,1,200*m,0,'tipsy','len',inQuad)
+	me(i+2,2,628*m,0,'confusionzoffset','len',outQuad)
+end
+
+me(174,4,0,1,function(a) st_mult1 = a.value end,'len',outCubic)
+me(174,4,0,1,function(a) st_mult2 = a.value end,'len',outCubic)
+mpf(174,236,function(beat,deltatime)
+	for pn = 1,2 do
+		local o = ((pn-1)*4)
+		addmods('*-1 '..st_mult1*250*math.sin((beat/2)+o/1.25) ..'% movez',pn)
+		addmods('*-1 '..st_mult2*250*math.cos((beat/2)+o/1.25) ..'% movex',pn)
+		addmods('*-1 '..st_mult1*15*math.cos((beat/4)+o/1.25) ..'% rotationz',pn)
+	end
+end)
+
+for i,v in ipairs(donk) do
+	me(v[1],1,-200,0,'tinyy'..v[2],'len',outCubic)
+end
+
+for i = 188,190,2 do
+	me(i,1,0,30,'invert','len',outCubic)
+	me(i,1,-100,0,'tinyx','len',outCubic)
+	me(i+1,1,30,0,'invert','len',outCubic)
+	me(i+1,1,-100,0,'tinyx','len',outCubic)
+end
+
+me(195.5,1,200,0,'drunkz','len',inQuad)
+me(195.5,1,628,0,'confusionyoffset','len',outQuad)
+me(198.5,1,-628,0,'confusionyoffset','len',outQuad)
+me(225,1,-628,0,'confusionyoffset','len',outQuad)
+me(229,1,-628,0,'confusionyoffset','len',outQuad)
+
+mb(208,2,0,100,'flip',{in_ease = outBack, out_ease = outBack})	
+mb(208,1,0,100,'square',{in_ease = outBack, out_ease = outBack})	
+mb(209,1,0,-100,'square',{in_ease = outBack, out_ease = outBack})	
+me(208,1,-100,0,'tinyx','len',outCubic)
+me(209,1,-100,0,'tinyx','len',outCubic)
+me(209,210,0,99.9,'reverse','end',outCubic,nil,239)
+
+me(209,1,1,-1,function(a) st_mult2 = a.value end,'len',outCubic)
+
+for i = 220,222,2 do
+	me(i,1,0,40,'invert','len',outCubic)
+	me(i,1,-120,0,'tinyx','len',outCubic)
+	me(i+1,1,40,0,'invert','len',outCubic)
+	me(i+1,1,-120,0,'tinyx','len',outCubic)
+end
+
+for i = 232,235 do	
+	me(i,1,-300,0,'tiny','len',outQuad)
+end
+for i,v in ipairs(gerwoman) do
+	me(v[1],1,-300,0,'tiny','len',outQuad)
+end
+
+me(236,4,-1,0,function(a) st_mult2 = a.value end,'len',outCubic)
+me(236,4,1,0,function(a) st_mult1 = a.value end,'len',outCubic)
+
+--funny end
+mm(240,function()
+	bottomfunny:diffusealpha(1)
+end,true)
+mm(239,function()
+	backgroundfront:x(short.scx)
+	backgroundback:x(short.scx)
+	cityfront:x(short.scx)
+end,true)
+me(239,4,short.scy+800,short.scy,function(a) cityfront:y(a.value) end,'len',outExpo)
+
+me(239,4,short.scy+800,short.scy-100,function(a) backgroundfront:y(a.value) end,'len',outExpo)
+me(239,4,short.scy+500,short.scy-50,function(a) backgroundback:y(a.value) end,'len',outExpo)
+
+me(239,4,short.scy+200,short.scy,function(a) sky:y(a.value) end,'len',inQuad)
+me(239,4,0.5,0,function(a) stargrid:texcoordvelocity(0,a.value) end,'len',inQuad)
+
+for i = 240,245 do
+	me(i,1,short.sw+30,short.sw,function(a) backgroundfront:zoomtowidth(a.value) end,'len',outCubic)
+	me(i,1,short.sh+30,short.sh,function(a) backgroundfront:zoomtoheight(a.value) end,'len',outCubic)
+	
+	me(i,1,short.sw+15,short.sw,function(a) backgroundback:zoomtowidth(a.value) end,'len',outCubic)
+	me(i,1,short.sh+15,short.sh,function(a) backgroundback:zoomtoheight(a.value) end,'len',outCubic)
+	
+	me(i,1,0.65,0.6,function(a) cityfront:zoom(a.value) end,'len',outCubic)
+end
+
+me(236,3,0,-70,'rotationx','len',outQuad)
+me(236,3,400,800,'zoomz','len',outQuad)
+me(236,3,0,100,'wave','len',outQuad)
+
+me(239,1,-70,0,'rotationx','len',outQuad)
+me(239,1,800,400,'zoomz','len',outQuad)
+me(239,1,100,0,'wave','len',outQuad)
+me(239,1,628,0,'confusionzoffset','len',linear)
+
+for i = 240,244,2 do
+	mb(i,1,0,60,'rotationx',{in_ease = outCubic, out_ease = inCubic})
+	mb(i+1,1,0,-60,'rotationx',{in_ease = outCubic, out_ease = inCubic})	
+	me(i,1,-200,0,'tinyx','len',outCubic)
+	me(i+1,1,-200,0,'tinyx','len',outCubic)	
+end
+mb(240,2,0,100,'flip',{in_ease = outExpo, out_ease = outExpo})
+mb(242,2,0,100,'invert',{in_ease = outExpo, out_ease = outExpo})
+mb(244,2,0,100,'flip',{in_ease = outExpo, out_ease = outExpo})
+
+for i,v in ipairs(jokergothic) do
+	me(v[1],1,-300,0,'tiny','len',outCubic)
+	
+	if v[1] < 248.5 then
+		me(v[1],1,short.sw+20,short.sw,function(a) backgroundfront:zoomtowidth(a.value) end,'len',outCubic)
+		me(v[1],1,short.sh+20,short.sh,function(a) backgroundfront:zoomtoheight(a.value) end,'len',outCubic)
+		
+		me(v[1],1,short.sw+10,short.sw,function(a) backgroundback:zoomtowidth(a.value) end,'len',outCubic)
+		me(v[1],1,short.sh+10,short.sh,function(a) backgroundback:zoomtoheight(a.value) end,'len',outCubic)
+		
+		me(v[1],1,0.65,0.6,function(a) cityfront:zoom(a.value) end,'len',outCubic)
+	end
+end
+mb(246.25,1.25,0,60,'rotationx',{in_ease = outCubic, out_ease = inCubic})
+mb(246.25,1,0,30,'rotationz',{in_ease = outCubic, out_ease = inCubic})
+mb(246.75,1.25,0,-30,'rotationz',{in_ease = outCubic, out_ease = inCubic})
+mb(247.5,1.5,0,-60,'rotationx',{in_ease = outCubic, out_ease = inCubic})
+
+me(247.5,1.5,-360,0,'rotationz','len',outCubic)
+me(247.5,1.50,0,50,'flip','len',outCubic)
+me(247.5,1.50,0,50,'reverse','len',outCubic)
+
+--funny end2
+me(248.5,0.5,0,200,'tiny','len',outQuad,nil,999)
+
+me(248.5,1,short.sw,short.sw*2,function(a) backgroundfront:zoomtowidth(a.value) end,'len',outCirc)
+me(248.5,1,short.sh,short.sh*2,function(a) backgroundfront:zoomtoheight(a.value) end,'len',outCirc)
+me(248.5,1,1,0,function(a) backgroundfront:diffusealpha(a.value) end,'len',outCirc)
+	
+me(248.5,1,short.sw,short.sw*2,function(a) backgroundback:zoomtowidth(a.value) end,'len',outCirc)
+me(248.5,1,short.sh,short.sh*2,function(a) backgroundback:zoomtoheight(a.value) end,'len',outCirc)
+me(248.5,1,1,0,function(a) backgroundback:diffusealpha(a.value) end,'len',outCirc)
+	
+me(248.5,1,0.65,1,function(a) cityfront:zoom(a.value) end,'len',outCirc)
+me(248.5,1,1,0,function(a) cityfront:diffusealpha(a.value) end,'len',outCirc)
+
+me(248.5,1,1,0,function(a) sky:diffusealpha(a.value) end,'len',outCirc)
+me(248.5,1,1,0,function(a) stargrid:diffusealpha(a.value) end,'len',outCirc)
+me(248.5,1,1,0,function(a) bottomfunny:diffusealpha(a.value) end,'len',outCirc)
+
+
+
+end)"
+OnCommand="luaeffect,🐑" 🐑Command="%m_prefix.update"><children>
+
+</children></Layer>
